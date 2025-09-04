@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>gui</headerType>
+  <jar>C:\Users\omara\Downloads\Frontend.jar</jar>
+  <outfile>C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir>.</chdir>
+  <priority>normal</priority>
+  <downloadUrl></downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <manifest></manifest>
+  <icon>C:\Users\omara\OneDrive\Desktop\EazyRent\easyrentphoto.ico</icon>
+  <classPath>
+    <mainClass>MainGUI</mainClass>
+  </classPath>
+  <jre>
+    <path>C:\Program Files\Java\jdk-21</path>
+    <requiresJdk>false</requiresJdk>
+    <requires64Bit>false</requires64Bit>
+    <minVersion></minVersion>
+    <maxVersion></maxVersion>
+    <opt>--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base</opt>
+  </jre>
+</launch4jConfig>

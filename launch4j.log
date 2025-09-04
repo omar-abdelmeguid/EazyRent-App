@@ -1,0 +1,578 @@
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+Substitute:	JAVA_HOME = C:\Program Files\Java\jdk-21\
+Substitute:	PATH = C:\javafx-sdk-21.0.2\bin;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\java8path;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Python313\Scripts\;C:\Python313\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\bin;C:\javafx-sdk-21.0.2\bin;C:\Users\omara\AppData\Local\Microsoft\WindowsApps;C:\Users\omara\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\omara\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\omara\AppData\Local\Programs\MiKTeX\miktex\bin\x64\;C:\Users\omara\AppData\Roaming\npm;C:\Users\omara\.dotnet\tools;C:\Program Files\Java\jdk-21\\bin
+JRE paths:	C:\Program Files\Java\jdk-21\;C:\javafx-sdk-21.0.2\bin;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\java8path;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Python313\Scripts\;C:\Python313\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\bin;C:\javafx-sdk-21.0.2\bin;C:\Users\omara\AppData\Local\Microsoft\WindowsApps;C:\Users\omara\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\omara\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\omara\AppData\Local\Programs\MiKTeX\miktex\bin\x64\;C:\Users\omara\AppData\Roaming\npm;C:\Users\omara\.dotnet\tools;C:\Program Files\Java\jdk-21\\bin
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	-jar "C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe"
+Args length:	56/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+Substitute:	JAVA_HOME = C:\Program Files\Java\jdk-21\
+Substitute:	PATH = C:\javafx-sdk-21.0.2\bin;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\java8path;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Python313\Scripts\;C:\Python313\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\bin;C:\javafx-sdk-21.0.2\bin;C:\Users\omara\AppData\Local\Microsoft\WindowsApps;C:\Users\omara\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\omara\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\omara\AppData\Local\Programs\MiKTeX\miktex\bin\x64\;C:\Users\omara\AppData\Roaming\npm;C:\Users\omara\.dotnet\tools;C:\Program Files\Java\jdk-21\\bin
+JRE paths:	C:\Program Files\Java\jdk-21\;C:\javafx-sdk-21.0.2\bin;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Common Files\Oracle\Java\java8path;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Python313\Scripts\;C:\Python313\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\dotnet\;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\bin;C:\javafx-sdk-21.0.2\bin;C:\Users\omara\AppData\Local\Microsoft\WindowsApps;C:\Users\omara\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\omara\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\omara\AppData\Local\Programs\MiKTeX\miktex\bin\x64\;C:\Users\omara\AppData\Roaming\npm;C:\Users\omara\.dotnet\tools;C:\Program Files\Java\jdk-21\\bin
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	-jar "C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe"
+Args length:	56/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Users\omara\OneDrive\Desktop\SAHL\out\artifacts\SAHL_jar\SAHL.jar 
+Check launcher:	C:\Users\omara\OneDrive\Desktop\SAHL\out\artifacts\SAHL_jar\SAHL.jar \bin\javaw.exe (not found)
+Error msg:	This application requires a Java Runtime Environment.
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Users\omara\OneDrive\Desktop\SAHL\out\artifacts\SAHL_jar\SAHL.jar 
+Check launcher:	C:\Users\omara\OneDrive\Desktop\SAHL\out\artifacts\SAHL_jar\SAHL.jar \bin\javaw.exe (not found)
+Error msg:	This application requires a Java Runtime Environment.
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Users\omara\OneDrive\Desktop\SAHL\out\artifacts\SAHL_jar\SAHL.jar
+Check launcher:	C:\Users\omara\OneDrive\Desktop\SAHL\out\artifacts\SAHL_jar\SAHL.jar\bin\javaw.exe (not found)
+Error msg:	This application requires a Java Runtime Environment.
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	-classpath "C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe" MainGUI
+Args length:	70/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\javafx-sdk-21.0.2
+Check launcher:	C:\javafx-sdk-21.0.2\bin\javaw.exe (not found)
+Error msg:	This application requires a Java Runtime Environment.
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\javafx-sdk-21.0.2
+Check launcher:	C:\javafx-sdk-21.0.2\bin\javaw.exe (not found)
+Error msg:	This application requires a Java Runtime Environment.
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\javafx-sdk-21.0.2
+Check launcher:	C:\javafx-sdk-21.0.2\bin\javaw.exe (not found)
+Error msg:	This application requires a Java Runtime Environment.
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\javafx-sdk-21.0.2
+Check launcher:	C:\javafx-sdk-21.0.2\bin\javaw.exe (not found)
+Error msg:	This application requires a Java Runtime Environment.
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-1.8
+Check launcher:	C:\Program Files\Java\jdk-1.8\bin\javaw.exe (OK)
+Version string: 1.008.000_441 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-1.8\bin\javaw.exe
+Launcher args:	-classpath "C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe" MainGUI
+Args length:	70/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\SAHL\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-1.8
+Check launcher:	C:\Program Files\Java\jdk-1.8\bin\javaw.exe (OK)
+Version string: 1.008.000_441 / 64-Bit (OK)
+Main class:	Frontend.MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-1.8\bin\javaw.exe
+Launcher args:	-classpath "C:\Users\omara\OneDrive\Desktop\SAHL\EasyRent.exe" Frontend.MainGUI
+Args length:	79/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	app.MainApp
+Add classpath:	gson-2.10.1.jar
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe;gson-2.10.1.jar" app.MainApp
+Args length:	203/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	src.MainGui
+Add classpath:	gson-2.10.1.jar
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe;gson-2.10.1.jar" src.MainGui
+Args length:	203/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGui
+Add classpath:	gson-2.10.1.jar
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe;gson-2.10.1.jar" MainGui
+Args length:	199/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGui
+Add classpath:	gson-2.10.1.jar
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe;gson-2.10.1.jar" MainGui
+Args length:	199/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe" MainGUI
+Args length:	183/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe" MainGUI
+Args length:	183/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe" MainGUI
+Args length:	183/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe" MainGUI
+Args length:	183/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.1\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.1\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent V1.1\EasyRent.exe" MainGUI
+Args length:	188/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.1\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.1\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent V1.1\EasyRent.exe" MainGUI
+Args length:	188/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent V1.2\EasyRent.exe" MainGUI
+Args length:	188/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent V1.2\EasyRent.exe" MainGUI
+Args length:	188/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.2\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.2\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.2\EasyRent.exe" MainGUI
+Args length:	190/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.2\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.2\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.2\EasyRent.exe" MainGUI
+Args length:	190/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.3\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.3\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.3\EasyRent.exe" MainGUI
+Args length:	190/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.4\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.4\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent V1.2.4\EasyRent.exe" MainGUI
+Args length:	190/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe" MainGUI
+Args length:	183/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe" MainGUI
+Args length:	183/32768 chars
+Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe" MainGUI
+Args length:	183/32768 chars
+Exit code:	0
