@@ -26,16 +26,20 @@ public class TimeStamp {
         }
     }
 
+
     private static boolean isValidTimeStampPath(String p) {
         if (p == null || p.isBlank()) return false;
         try {
             Path path = Paths.get(p);
-            // must exist and end with TimeStamp.mdb
-            return Files.exists(path) && p.replace('\\','/').toLowerCase().endsWith("/timestamp.mdb");
+            if (!Files.exists(path)) return false;
+            String s = p.replace('\\','/').toLowerCase();
+            // accept either .mdb or .accdb
+            return s.endsWith("/timestamp.mdb") || s.endsWith("/timestamp.accdb");
         } catch (Exception ignore) {
             return false;
         }
     }
+
 
     public static void setPath(String newPath) {
         dbPath = newPath;

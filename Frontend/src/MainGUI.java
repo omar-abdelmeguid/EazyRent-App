@@ -98,12 +98,6 @@ public class MainGUI extends Application {
         Button settingsBtn = new Button();
         I18n.bind(settingsBtn, "settings");
 
-        Region grow = new Region();
-        HBox.setHgrow(grow, Priority.ALWAYS);
-
-        HBox bottomPublic = new HBox(16, sendBtn, grow, settingsBtn);
-        bottomPublic.setAlignment(Pos.CENTER_LEFT);
-
         // ---------- Admin panel (hidden until unlocked) ----------
         TextField endpointField = new TextField(SendRangeService.getImportUrl());
         endpointField.setPrefWidth(260);
@@ -114,14 +108,26 @@ public class MainGUI extends Application {
         Button setLoginEndpointBtn = new Button();
 
         Button changeDbBtn = new Button();
+        Button changeTimestampDbBtn = new Button(); // NEW
+
         adminPanel = AdminPanelFactory.create(
-                endpointField, setEndpointBtn, loginEndpointField, setLoginEndpointBtn, changeDbBtn,
+                endpointField, setEndpointBtn,
+                loginEndpointField, setLoginEndpointBtn,
+                changeDbBtn,
+                changeTimestampDbBtn, // NEW
                 () -> {
                     adminPanel.setVisible(false);
                     adminPanel.setManaged(false);
                     showToast(I18n.t("toast.panel.close"));
                 }
         );
+
+        // ----- Public bottom row AFTER buttons exist -----
+        Region grow = new Region();
+        HBox.setHgrow(grow, Priority.ALWAYS);
+
+        HBox bottomPublic = new HBox(16, sendBtn, grow, settingsBtn);
+        bottomPublic.setAlignment(Pos.CENTER_LEFT);
 
         // ----- Center content (table + public buttons + admin + status) -----
         VBox centerBox = new VBox(10, table, bottomPublic, adminPanel, statusRow);
@@ -138,6 +144,8 @@ public class MainGUI extends Application {
         // ---------- Wire actions ----------
         browseBtn.setOnAction(e -> doBrowse(fromDate, toDate, modeBox, browseBtn));
         changeDbBtn.setOnAction(e -> onChangeDb(primaryStage, changeDbBtn));
+        changeTimestampDbBtn.setOnAction(e -> onChangeTimestampDb(primaryStage, changeTimestampDbBtn)); // NEW
+
         setEndpointBtn.setOnAction(e -> {
             SendRangeService.setImportUrl(endpointField.getText().trim());
             showToast("Endpoint set to: " + SendRangeService.getImportUrl());
@@ -237,6 +245,26 @@ public class MainGUI extends Application {
         }
         loader.setVisible(false);
         changeDbBtn.setDisable(false);
+    }
+
+    private void onChangeTimestampDb(Stage owner, Button btn) {
+        loader.setVisible(true);
+        btn.setDisable(true);
+
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Select Timestamp Database (.mdb/.accdb)");
+        fc.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Access DB Files", "*.mdb", "*.accdb")
+        );
+
+        File selected = fc.showOpenDialog(owner);
+        if (selected != null) {
+            db.TimeStamp.setPath(selected.getAbsolutePath());
+            showToast("Timestamp DB updated: " + selected.getName());
+        }
+
+        loader.setVisible(false);
+        btn.setDisable(false);
     }
 
     private void doSend(DatePicker fromDate, DatePicker toDate, Button sendBtn) {
