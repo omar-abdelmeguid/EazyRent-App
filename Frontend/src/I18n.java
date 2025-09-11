@@ -48,7 +48,8 @@ public final class I18n {
         put("col.credit1","Creditaccount1");
         put("col.debit2", "Debitaccount2");
         put("col.credit2","Creditaccount2");
-        put("col.costCenter", "Cost Center");
+        put("col.DrcostCenter", "DrcostCenter");
+        put("col.CrcostCenter", "CrcostCenter");
 
         put("toast.loaded", "Loaded rows = ");
         put("toast.panel.open", "Admin panel unlocked.");
@@ -95,7 +96,8 @@ public final class I18n {
         put("col.credit1","دائن١");
         put("col.debit2", "مدين٢");
         put("col.credit2","دائن٢");
-        put("col.costCenter", "مركز التكلفة");
+        put("col.DrcostCenter", "مركز التكلفة 1");
+        put("col.CrcostCenter", "مركز التكلفة 2");
 
         put("toast.loaded", "عدد السجلات = ");
         put("toast.panel.open", "تم فتح لوحة الإدارة.");

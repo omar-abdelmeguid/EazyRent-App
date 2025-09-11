@@ -12,12 +12,14 @@ public class Record {
     private final StringProperty credit1     = new SimpleStringProperty("");
     private final StringProperty debit2      = new SimpleStringProperty("");
     private final StringProperty credit2     = new SimpleStringProperty("");
-    private final StringProperty costCenterCode = new SimpleStringProperty("");
+    private final StringProperty DrcostCenterCode = new SimpleStringProperty("");
+    private final StringProperty CrcostCenterCode = new SimpleStringProperty("");
+
 
     public Record(String date, String amount, String description, String type,
                   String roomNo, String rentNo,
                   String debit1, String credit1,
-                  String debit2, String credit2,String costCenterCode) {
+                  String debit2, String credit2,String DrcostCenterCode,String CrcostCenterCode) {
         this.date.set(s(date));
         this.amount.set(s(amount));
         this.description.set(s(description));
@@ -28,7 +30,8 @@ public class Record {
         this.credit1.set(s(credit1));
         this.debit2.set(s(debit2));
         this.credit2.set(s(credit2));
-        this.costCenterCode.set(costCenterCode);         // 👈 added
+        this.DrcostCenterCode.set(DrcostCenterCode);
+        this.CrcostCenterCode.set(CrcostCenterCode); // 👈 added
 
     }
 
@@ -48,7 +51,9 @@ public class Record {
     public String getCredit1()     { return credit1.get(); }
     public String getDebit2()      { return debit2.get(); }
     public String getCredit2()     { return credit2.get(); }
-    public String getCostCenterCode() { return costCenterCode.get(); }
+    public String getDrCostCenterCode() { return DrcostCenterCode.get(); }
+    public String getCrCostCenterCode() { return CrcostCenterCode.get(); }
+
 
 
     // Properties (optional if you ever want to bind/edit)
@@ -62,6 +67,8 @@ public class Record {
     public StringProperty credit1Property()     { return credit1; }
     public StringProperty debit2Property()      { return debit2; }
     public StringProperty credit2Property()     { return credit2; }
-    public StringProperty costCenterCodeProperty() { return costCenterCode; }
+    public StringProperty DrcostCenterCodeProperty() { return DrcostCenterCode; }
+    public StringProperty CrcostCenterCodeProperty() { return CrcostCenterCode; }
+
 
 }

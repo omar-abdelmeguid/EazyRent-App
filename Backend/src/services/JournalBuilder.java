@@ -6,6 +6,7 @@ import java.util.*;
  * Single source of truth for building the ImportJournal payload.
  * Returns a Map that will serialize to the expected JSON.
  */
+
 public final class JournalBuilder {
     private JournalBuilder() {}
 
@@ -15,11 +16,30 @@ public final class JournalBuilder {
      *       DebitAccount1, CreditAccount1 (or CreditAccount11), DebitAccount2, CreditAccount2,
      *       CostCenterCode (or costCenterCode).
      */
+
+
+    private static boolean isValid(Object v) {
+        if (v == null) return false;
+        String s = v.toString().trim();
+        return s.length() > 1;   // must be at least 2 meaningful characters
+    }
+
     public static Map<String,Object> buildJournalForApi(Map<String,Object> r) {
         if (r == null) return null;
-
+        Object debitAcct = r.get("DebitAccount1");
+        Object creditAcct = r.get("CreditAccount11");
         String date = toYmd(r.get("Date"));                // "YYYY-MM-DD"
-        double amt  = Math.abs(toDouble(r.get("Amount"))); // always positive
+
+        double amt  = Math.abs(toDouble(r.get("Amount")));
+        double amt_credit1  = Math.abs(toDouble(r.get("Credit_Amount1")));
+        double amt_credit2  = Math.abs(toDouble(r.get("Credit_Amount2")));
+        double amt_debit1  = Math.abs(toDouble(r.get("Debit_Amount1")));
+        double amt_debit2  = Math.abs(toDouble(r.get("Debit_Amount2")));
+        // always positive
+        if (!isValid(debitAcct) || !isValid(creditAcct)) {
+            return null; // skip sending JSON
+        }
+
 
         Map<String,Object> j = new LinkedHashMap<>();
         j.put("docSerExternal", s(r.get("Ser")));
@@ -38,19 +58,18 @@ public final class JournalBuilder {
         List<Map<String,Object>> details = new ArrayList<>();
 
         // Prefer CreditAccount11; fallback to CreditAccount1
-        Object creditAcct = r.get("CreditAccount11");
         if (creditAcct == null) creditAcct = r.get("CreditAccount1");
 
         // Accept either alias casing for cost center
-        Object costCenter = r.get("CostCenterCode");
-        if (costCenter == null) costCenter = r.get("costCenterCode");
+        Object DrcostCenter = r.get("DrcostCenterCode");
+        Object CrcostCenter = r.get("CrcostCenterCode");
+
 
         // Common description
         String lineDescr = "room number= " + s(r.get("Room_no")) +
                 " rent number= " + s(r.get("Rent_no")) + " " + s(r.get("Descr1"));
 
         // Debit 1
-        Object debitAcct = r.get("DebitAccount1");
         if (debitAcct != null && !String.valueOf(debitAcct).isBlank()) {
             Map<String, Object> dr = new LinkedHashMap<>();
             dr.put("docDueDate", date);
@@ -60,9 +79,9 @@ public final class JournalBuilder {
             dr.put("currencyCode", "SAR");
             dr.put("exchangeRate", 0);
             dr.put("drOrCr", 1);
-            dr.put("amountLocal", amt);
+            dr.put("amountLocal", amt_debit1);
             dr.put("amountForeign", 0);
-            dr.put("costCenterCode", costCenter);      // 👈 right after amountForeign
+            dr.put("costCenterCode", DrcostCenter);      // 👈 right after amountForeign
             dr.put("chequeNo", "0");
             dr.put("referenceNo", "0");
             dr.put("billNo", "");
@@ -84,9 +103,9 @@ public final class JournalBuilder {
             dr2.put("currencyCode", "SAR");
             dr2.put("exchangeRate", 0);
             dr2.put("drOrCr", 1);
-            dr2.put("amountLocal", amt);
+            dr2.put("amountLocal", amt_debit2);
             dr2.put("amountForeign", 0);
-            dr2.put("costCenterCode", costCenter);      // 👈 right after amountForeign
+            dr2.put("costCenterCode", DrcostCenter);      // 👈 right after amountForeign
             dr2.put("chequeNo", "0");
             dr2.put("referenceNo", "0");
             dr2.put("billNo", "");
@@ -107,9 +126,9 @@ public final class JournalBuilder {
             cr.put("currencyCode", "SAR");
             cr.put("exchangeRate", 0);
             cr.put("drOrCr", -1);
-            cr.put("amountLocal", amt);
+            cr.put("amountLocal", amt_credit1);
             cr.put("amountForeign", 0);
-            cr.put("costCenterCode", costCenter);      // 👈 right after amountForeign
+            cr.put("costCenterCode", CrcostCenter);      // 👈 right after amountForeign
             cr.put("chequeNo", "0");
             cr.put("referenceNo", "0");
             cr.put("billNo", "");
@@ -130,9 +149,9 @@ public final class JournalBuilder {
             cr2.put("currencyCode", "SAR");
             cr2.put("exchangeRate", 0);
             cr2.put("drOrCr", -1);
-            cr2.put("amountLocal", amt);
+            cr2.put("amountLocal", amt_credit2);
             cr2.put("amountForeign", 0);
-            cr2.put("costCenterCode", costCenter);      // 👈 right after amountForeign
+            cr2.put("costCenterCode", CrcostCenter);      // 👈 right after amountForeign
             cr2.put("chequeNo", "0");
             cr2.put("referenceNo", "0");
             cr2.put("billNo", "");

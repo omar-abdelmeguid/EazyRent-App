@@ -201,7 +201,8 @@ public class MainGUI extends Application {
                         str(row.get("CreditAccount1")),
                         str(row.get("DebitAccount2")),
                         str(row.get("CreditAccount2")),
-                        str(row.get("costCenterCode"))
+                        str(row.get("CrcostCenterCode")),
+                        str(row.get("DrcostCenterCode"))
                 )).toList();
             }
         };

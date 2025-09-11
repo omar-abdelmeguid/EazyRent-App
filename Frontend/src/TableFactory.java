@@ -26,7 +26,8 @@ public final class TableFactory {
                 col("col.credit1",    "credit1"),
                 col("col.debit2",     "debit2"),
                 col("col.credit2",    "credit2"),
-                col("col.costCenter", "costCenterCode")
+                col("col.DrcostCenter", "DrcostCenterCode"),
+                col("col.CrcostCenter", "CrcostCenterCode")
         );
 
         return tv;
