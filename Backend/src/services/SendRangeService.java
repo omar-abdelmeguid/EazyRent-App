@@ -247,7 +247,7 @@ public class SendRangeService {
         String s = ser.trim();
         try (Connection ts = db.TimeStamp.getConnection();
              PreparedStatement ps = ts.prepareStatement(
-                     "SELECT 1 FROM [TimeStamp] WHERE [Table]=? AND TRIM([Ser])=?")) {
+                     "SELECT 1 FROM [TR_TimeStamp] WHERE [Table]=? AND TRIM([Ser])=?")) {
             ps.setString(1, table);
             ps.setString(2, s);
             try (ResultSet rs = ps.executeQuery()) {
@@ -267,12 +267,12 @@ public class SendRangeService {
     /** Ensure [TimeStamp] exists with TEXT columns (compatible with your Long Text/Short Text). */
     private static void ensureTimeStampTable(Connection conn) throws SQLException {
         try (Statement s = conn.createStatement()) {
-            s.execute("SELECT TOP 1 [Ser],[Table],[TimeStamp] FROM [TimeStamp]");
+            s.execute("SELECT TOP 1 [Ser],[Table],[TimeStamp] FROM [TR_TimeStamp]");
         } catch (SQLException e) {
             try (Statement s2 = conn.createStatement()) {
                 // TEXT sizes chosen to be broadly compatible; Access will map appropriately.
                 s2.execute(
-                        "CREATE TABLE [TimeStamp] (" +
+                        "CREATE TABLE [TR_TimeStamp] (" +
                                 "  [Ser] TEXT(255), " +
                                 "  [Table] TEXT(64), " +
                                 "  [TimeStamp] TEXT(32)" +
@@ -341,7 +341,7 @@ public class SendRangeService {
         // 1) Try UPDATE first
         int updated;
         try (PreparedStatement ps = conn.prepareStatement(
-                "UPDATE [TimeStamp] SET [TimeStamp]=? WHERE [Table]=? AND [Ser]=?")) {
+                "UPDATE [TR_TimeStamp] SET [TimeStamp]=? WHERE [Table]=? AND [Ser]=?")) {
             ps.setString(1, ts);
             ps.setString(2, tableName);
             ps.setString(3, ser);
@@ -351,7 +351,7 @@ public class SendRangeService {
 
         // 2) INSERT if not found
         try (PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO [TimeStamp] ([Ser],[Table],[TimeStamp]) VALUES (?,?,?)")) {
+                "INSERT INTO [TR_TimeStamp] ([Ser],[Table],[TimeStamp]) VALUES (?,?,?)")) {
             ps.setString(1, ser);
             ps.setString(2, tableName);
             ps.setString(3, ts);
@@ -361,7 +361,7 @@ public class SendRangeService {
             final String msg = String.valueOf(ex.getMessage()).toLowerCase(Locale.ROOT);
             if ("23000".equals(ex.getSQLState()) || msg.contains("duplicate")) {
                 try (PreparedStatement ps2 = conn.prepareStatement(
-                        "UPDATE [TimeStamp] SET [TimeStamp]=? WHERE [Table]=? AND [Ser]=?")) {
+                        "UPDATE [TR_TimeStamp] SET [TimeStamp]=? WHERE [Table]=? AND [Ser]=?")) {
                     ps2.setString(1, ts);
                     ps2.setString(2, tableName);
                     ps2.setString(3, ser);
@@ -409,11 +409,11 @@ public class SendRangeService {
 
         String sqlHome =
                 "SELECT [Ser], 'statement' AS TableName FROM [statement] " +
-                        "WHERE [Done]=TRUE " +                               // ← space here
+                        "WHERE [TR_Done]=TRUE " +                               // ← space here
                         (hasRange ? "AND [Date] BETWEEN ? AND ? " : "") +
                         "UNION ALL " +
                         "SELECT [Ser], 'Gl_Journal' AS TableName FROM [Gl_Journal] " +
-                        "WHERE [Done]=TRUE " +                               // ← and here
+                        "WHERE [TR_Done]=TRUE " +                               // ← and here
                         (hasRange ? "AND [Date] BETWEEN ? AND ? " : "");
 
         List<Map<String,Object>> keys = new ArrayList<>();
@@ -453,7 +453,7 @@ public class SendRangeService {
             ensureTimeStampTable(ts); // in case table is missing
 
             try (PreparedStatement del = ts.prepareStatement(
-                    "DELETE FROM [TimeStamp] WHERE [Table]=? AND [Ser]=?")) {
+                    "DELETE FROM [TR_TimeStamp] WHERE [Table]=? AND [Ser]=?")) {
                 for (Map<String,Object> k : keys) {
                     String tableName = String.valueOf(k.get("TableName"));
                     Object serObj = k.get("Ser");
@@ -477,6 +477,7 @@ public class SendRangeService {
     }
 
     /** 3) Build anti-resend SQL using local __SentKeys (no cross-db IN) */
+    /** 3) Build anti-resend SQL using the new TR_ columns in home.mdb */
     private static String buildAntiResendSql() {
         return
                 "SELECT s.[Ser], s.[Date], s.[Amount], s.[Descr1], s.[Room_no], s.[Rent_no], " +
@@ -488,19 +489,20 @@ public class SendRangeService {
                         "       s.[Dr_dtl_ac1]  AS Dr_dtl_ac1,  s.[Dr_dtl_ac2]  AS Dr_dtl_ac2, " +
                         "       'statement' AS src " +
                         "FROM [statement] s " +
-                        "WHERE s.[Date] BETWEEN ? AND ? AND s.[Time_Stamp] IS NULL " +
-                        "UNION ALL " +
-                        "SELECT g.[Ser], g.[Date], g.[Amount], g.[Descr1], g.[Room_no], g.[Rent_no], " +
-                        "       g.[DebitAccount1], g.[CreditAccount1] AS CreditAccount11, g.[DebitAccount2], g.[CreditAccount2], " +
-                        "       g.[DrcostCenterCode] AS DrcostCenterCode, g.[CrcostCenterCode] AS CrcostCenterCode, " +
-                        "       g.[CreditAmount1] AS Credit_Amount1, g.[CreditAmount2] AS Credit_Amount2, " +
-                        "       g.[DebitAmount1]  AS Debit_Amount1,  g.[DebitAmount2]  AS Debit_Amount2, " +
-                        "       g.[Cr_dtl_ac1] AS Cr_dtl_ac1, g.[Cr_dtl_ac2] AS Cr_dtl_ac2, " +
-                        "       g.[Dr_dtl_ac1]  AS Dr_dtl_ac1,  g.[Dr_dtl_ac2]  AS Dr_dtl_ac2, " +
-                        "       'Gl_Journal' AS src " +
-                        "FROM [Gl_Journal] g " +
-                        "WHERE g.[Date] BETWEEN ? AND ? AND g.[Time_Stamp] IS NULL";
+                        "WHERE s.[Date] BETWEEN ? AND ? AND s.[TR_TimeStamp] IS NULL " +
+        "UNION ALL " +
+                "SELECT g.[Ser], g.[Date], g.[Amount], g.[Descr1], g.[Room_no], g.[Rent_no], " +
+                "       g.[DebitAccount1], g.[CreditAccount1] AS CreditAccount11, g.[DebitAccount2], g.[CreditAccount2], " +
+                "       g.[DrcostCenterCode] AS DrcostCenterCode, g.[CrcostCenterCode] AS CrcostCenterCode, " +
+                "       g.[CreditAmount1] AS Credit_Amount1, g.[CreditAmount2] AS Credit_Amount2, " +
+                "       g.[DebitAmount1]  AS Debit_Amount1,  g.[DebitAmount2]  AS Debit_Amount2, " +
+                "       g.[Cr_dtl_ac1] AS Cr_dtl_ac1, g.[Cr_dtl_ac2] AS Cr_dtl_ac2, " +
+                "       g.[Dr_dtl_ac1]  AS Dr_dtl_ac1,  g.[Dr_dtl_ac2]  AS Dr_dtl_ac2, " +
+                "       'Gl_Journal' AS src " +
+                "FROM [Gl_Journal] g " +
+                "WHERE g.[Date] BETWEEN ? AND ? AND g.[TR_TimeStamp] IS NULL";
     }
+
 
 
 }

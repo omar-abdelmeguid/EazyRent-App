@@ -32,7 +32,7 @@
 SELECT
     'statement' AS _src,
     Replace(Trim(CStr(s.[Ser])), ',', '') AS _ser,
-    IIF(s.[Time_Stamp] IS NULL OR Len(Trim(s.[Time_Stamp]))=0, 1, 0) AS _tsNull,
+    IIF(s.[TR_TimeStamp] IS NULL OR Len(Trim(s.[TR_TimeStamp]))=0, 1, 0) AS _tsNull,
     s.[Date] AS Date, s.[Amount] AS Amount, s.[Descr1] AS Descr1, s.[Type] AS Type,
     s.[Room_no] AS Room_no, s.[Rent_no] AS Rent_no,
     s.[DebitAccount1] AS DebitAccount1, s.[CreditAccount1] AS CreditAccount1,
@@ -48,7 +48,7 @@ UNION ALL
 SELECT
     'Gl_Journal' AS _src,
     Replace(Trim(CStr(g.[Ser])), ',', '') AS _ser,
-    IIF(g.[Time_Stamp] IS NULL OR Len(Trim(g.[Time_Stamp]))=0, 1, 0) AS _tsNull,
+    IIF(g.[TR_TimeStamp] IS NULL OR Len(Trim(g.[TR_TimeStamp]))=0, 1, 0) AS _tsNull,
     g.[Date] AS Date, g.[Amount] AS Amount, g.[Descr1] AS Descr1, g.[Type] AS Type,
     g.[Room_no] AS Room_no, g.[Rent_no] AS Rent_no,
     g.[DebitAccount1] AS DebitAccount1, g.[CreditAccount1] AS CreditAccount1,
@@ -144,7 +144,7 @@ ORDER BY Date ASC
             StampedKeys out = new StampedKeys();
             try (Connection ts = db.TimeStamp.getConnection();
                  PreparedStatement ps = ts.prepareStatement(
-                         "SELECT [Table], Replace(Trim([Ser]), ',', '') FROM [TimeStamp]"
+                         "SELECT [Table], Replace(Trim([Ser]), ',', '') FROM [TR_TimeStamp]"
                  );
                  ResultSet rs = ps.executeQuery()) {
 
