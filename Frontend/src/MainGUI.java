@@ -375,6 +375,10 @@ public class MainGUI extends Application {
 
     public static void main(String[] args) {
         // warm-up connection
+        if (!SingleInstanceLock.lockInstance("app.lock")) {
+            System.out.println("Another instance is already running.");
+            return; // Exit if already running
+        }
         new Thread(() -> {
             try (Connection ignored = AccessConnection.getConnection()) { /* warm-up */ }
             catch (Exception e) { e.printStackTrace(); }

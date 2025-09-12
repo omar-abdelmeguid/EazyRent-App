@@ -35,6 +35,10 @@ public final class JournalBuilder {
         double amt_credit2  = Math.abs(toDouble(r.get("Credit_Amount2")));
         double amt_debit1  = Math.abs(toDouble(r.get("Debit_Amount1")));
         double amt_debit2  = Math.abs(toDouble(r.get("Debit_Amount2")));
+        Object Cr_dtl_ac1 = r.get("Cr_dtl_ac1");
+        Object Cr_dtl_ac2 = r.get("Cr_dtl_ac2");
+        Object Dr_dtl_ac1 = r.get("Dr_dtl_ac1");
+        Object Dr_dtl_ac2 = r.get("Dr_dtl_ac2");
         // always positive
         if (!isValid(debitAcct) || !isValid(creditAcct)) {
             return null; // skip sending JSON
@@ -74,7 +78,7 @@ public final class JournalBuilder {
             Map<String, Object> dr = new LinkedHashMap<>();
             dr.put("docDueDate", date);
             dr.put("accountCode", r.get("DebitAccount1"));
-            dr.put("accountCodeDtl", "");
+            dr.put("accountCodeDtl", Dr_dtl_ac1);
             dr.put("accountCodeDtlSub", "");
             dr.put("currencyCode", "SAR");
             dr.put("exchangeRate", 0);
@@ -98,7 +102,7 @@ public final class JournalBuilder {
             Map<String, Object> dr2 = new LinkedHashMap<>();
             dr2.put("docDueDate", date);
             dr2.put("accountCode", r.get("DebitAccount2"));
-            dr2.put("accountCodeDtl", "");
+            dr2.put("accountCodeDtl", Dr_dtl_ac2);
             dr2.put("accountCodeDtlSub", "");
             dr2.put("currencyCode", "SAR");
             dr2.put("exchangeRate", 0);
@@ -121,7 +125,7 @@ public final class JournalBuilder {
             Map<String, Object> cr = new LinkedHashMap<>();
             cr.put("docDueDate", date);
             cr.put("accountCode", creditAcct);
-            cr.put("accountCodeDtl", "");
+            cr.put("accountCodeDtl", Cr_dtl_ac1);
             cr.put("accountCodeDtlSub", "");
             cr.put("currencyCode", "SAR");
             cr.put("exchangeRate", 0);
@@ -144,7 +148,7 @@ public final class JournalBuilder {
             Map<String, Object> cr2 = new LinkedHashMap<>();
             cr2.put("docDueDate", date);
             cr2.put("accountCode", creditAcct2);
-            cr2.put("accountCodeDtl", "");
+            cr2.put("accountCodeDtl", Cr_dtl_ac2);
             cr2.put("accountCodeDtlSub", "");
             cr2.put("currencyCode", "SAR");
             cr2.put("exchangeRate", 0);

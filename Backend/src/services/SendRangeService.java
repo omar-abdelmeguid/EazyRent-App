@@ -484,6 +484,8 @@ public class SendRangeService {
                         "       s.[DrcostCenterCode] AS DrcostCenterCode, s.[CrcostCenterCode] AS CrcostCenterCode, " +
                         "       s.[CreditAmount1] AS Credit_Amount1, s.[CreditAmount2] AS Credit_Amount2, " +
                         "       s.[DebitAmount1]  AS Debit_Amount1,  s.[DebitAmount2]  AS Debit_Amount2, " +
+                        "       s.[Cr_dtl_ac1] AS Cr_dtl_ac1, s.[Cr_dtl_ac2] AS Cr_dtl_ac2, " +
+                        "       s.[Dr_dtl_ac1]  AS Dr_dtl_ac1,  s.[Dr_dtl_ac2]  AS Dr_dtl_ac2, " +
                         "       'statement' AS src " +
                         "FROM [statement] s " +
                         "WHERE s.[Date] BETWEEN ? AND ? AND s.[Time_Stamp] IS NULL " +
@@ -493,45 +495,11 @@ public class SendRangeService {
                         "       g.[DrcostCenterCode] AS DrcostCenterCode, g.[CrcostCenterCode] AS CrcostCenterCode, " +
                         "       g.[CreditAmount1] AS Credit_Amount1, g.[CreditAmount2] AS Credit_Amount2, " +
                         "       g.[DebitAmount1]  AS Debit_Amount1,  g.[DebitAmount2]  AS Debit_Amount2, " +
+                        "       g.[Cr_dtl_ac1] AS Cr_dtl_ac1, g.[Cr_dtl_ac2] AS Cr_dtl_ac2, " +
+                        "       g.[Dr_dtl_ac1]  AS Dr_dtl_ac1,  g.[Dr_dtl_ac2]  AS Dr_dtl_ac2, " +
                         "       'Gl_Journal' AS src " +
                         "FROM [Gl_Journal] g " +
                         "WHERE g.[Date] BETWEEN ? AND ? AND g.[Time_Stamp] IS NULL";
-    }
-
-
-
-    /** Anti-resend SELECT: only rows with Time_Stamp IS NULL and NOT in __SentKeys (both tables). */
-    private static String buildAntiResendSqlLocal() {
-        return
-                "SELECT s.[Ser], s.[Date], s.[Amount], s.[Descr1], s.[Room_no], s.[Rent_no], " +
-                        "       s.[DebitAccount1], s.[CreditAccount1] AS CreditAccount11, s.[DebitAccount2], s.[CreditAccount2], " +
-                        "       s.[DrcostCenterCode] AS DrcostCenterCode, s.[CrcostCenterCode] AS CrcostCenterCode, " +
-                        "       s.[CreditAmount1] AS Credit_Amount1, s.[CreditAmount2] AS Credit_Amount2, " +
-                        "       s.[DebitAmount1] AS Debit_Amount1, s.[DebitAmount2] AS Debit_Amount2, " +
-                        "       'statement' AS src " +
-                        "FROM [statement] AS s " +
-                        "WHERE [Date] BETWEEN ? AND ? " +                 // keep your range; or drop if you don’t need dates
-                        "  AND s.[Time_Stamp] IS NULL " +
-                        "  AND NOT EXISTS ( " +
-                        "      SELECT 1 FROM [__SentKeys] k " +
-                        "      WHERE k.[Table]='statement' " +
-                        "        AND LTRIM(RTRIM(k.[Ser])) = LTRIM(RTRIM(CStr(s.[Ser]))) " +
-                        "  ) " +
-                        "UNION ALL " +
-                        "SELECT g.[Ser], g.[Date], g.[Amount], g.[Descr1], g.[Room_no], g.[Rent_no], " +
-                        "       g.[DebitAccount1], g.[CreditAccount1] AS CreditAccount11, g.[DebitAccount2], g.[CreditAccount2], " +
-                        "       g.[DrcostCenterCode] AS DrcostCenterCode, g.[CrcostCenterCode] AS CrcostCenterCode, " +
-                        "       g.[CreditAmount1] AS Credit_Amount1, g.[CreditAmount2] AS Credit_Amount2, " +
-                        "       g.[DebitAmount1] AS Debit_Amount1, g.[DebitAmount2] AS Debit_Amount2, " +
-                        "       'Gl_Journal' AS src " +
-                        "FROM [Gl_Journal] AS g " +
-                        "WHERE [Date] BETWEEN ? AND ? " +                 // keep your range; or drop if you don’t need dates
-                        "  AND g.[Time_Stamp] IS NULL " +
-                        "  AND NOT EXISTS ( " +
-                        "      SELECT 1 FROM [__SentKeys] k " +
-                        "      WHERE k.[Table]='Gl_Journal' " +
-                        "        AND LTRIM(RTRIM(k.[Ser])) = LTRIM(RTRIM(CStr(g.[Ser]))) " +
-                        "  )";
     }
 
 
