@@ -70,8 +70,8 @@ public final class JournalBuilder {
 
 
         // Common description
-        String lineDescr = "room number= " + s(r.get("Room_no")) +
-                " rent number= " + s(r.get("Rent_no")) + " " + s(r.get("Descr1"));
+        String lineDescr = "room#= " + s(r.get("Room_no")) +
+                " rent#= " + s(r.get("Rent_no")) + " " + s(r.get("Descr1"));
 
         // Debit 1
         if (debitAcct != null && !String.valueOf(debitAcct).isBlank()) {
