@@ -70,3 +70,165 @@
 [2025-09-13T14:41:38.962677100] REQUEST IMPORT URL=http://localhost:8081/api/GL/ImportJournal JSON=[{"docSerExternal":"2550235","branchNo":1,"docDate":"2025-05-14","docNo":null,"jvType":1,"amountLocal":212.0,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"5551","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":200.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"8881","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":100.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9990011","accountCodeDtl":"8882","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":102.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"}]}]
 [2025-09-13T14:41:38.968682400] RESPONSE IMPORT STATUS=200 BODY={"code":0,"message":"Success","content":[{"referenceId":"123","message":"The operation accomplished successfully.","errorNo":"0","docNo":"6767","docSer":"202500000100001001000016767"}]}
 [2025-09-13T14:41:38.981276300] SUMMARY {"ok":1,"fail":0}
+[2025-09-13T16:28:07.348835100] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.accdb statement=1 gl=0
+[2025-09-13T16:28:07.353335900] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-13T16:28:07.465751] FETCH_SUMMARY returned=0 mode=unsent
+[2025-09-13T16:28:09.287389] CLEANUP {"scanned":1599,"deleted":0}
+[2025-09-13T16:28:09.287891] CLEANUP_RUN {"scanned":1599,"deleted":0}
+[2025-09-13T16:28:09.288899400] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.accdb
+[2025-09-13T16:28:09.302417300] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-13T16:28:09.360070500] ERROR LOGIN Login error EX=ConnectException: null
+[2025-09-13T16:28:34.324614300] STAMP_LOAD_ERR net.ucanaccess.jdbc.UcanaccessSQLException: UCAExc:::5.0.1 Password authentication failed.
+[2025-09-13T16:28:34.364668400] FETCH_SUMMARY returned=1 mode=unsent
+[2025-09-13T16:28:42.536148] STAMP_LOAD_ERR net.ucanaccess.jdbc.UcanaccessSQLException: UCAExc:::5.0.1 Password authentication failed.
+[2025-09-13T16:28:42.595441100] FETCH_SUMMARY returned=1599 mode=sent
+[2025-09-13T16:28:49.723228400] STAMP_LOAD_ERR net.ucanaccess.jdbc.UcanaccessSQLException: UCAExc:::5.0.1 Password authentication failed.
+[2025-09-13T16:28:49.747261200] FETCH_SUMMARY returned=1 mode=unsent
+[2025-09-13T16:32:59.964572500] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=0 gl=0
+[2025-09-13T16:32:59.969578200] STAMP_LOAD_SAMPLES statement-> [] | gl-> []
+[2025-09-13T16:32:59.991197100] FETCH_SUMMARY returned=0 mode=unsent
+[2025-09-13T16:33:03.068053200] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=0 gl=0
+[2025-09-13T16:33:03.068053200] STAMP_LOAD_SAMPLES statement-> [] | gl-> []
+[2025-09-13T16:33:03.177679500] FETCH_SUMMARY returned=1 mode=unsent
+[2025-09-13T16:33:04.429476] CLEANUP {"scanned":1599,"deleted":0}
+[2025-09-13T16:33:04.429975500] CLEANUP_RUN {"scanned":1599,"deleted":0}
+[2025-09-13T16:33:04.430976] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-13T16:33:04.449396400] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-13T16:33:04.533674300] ERROR LOGIN Login error EX=ConnectException: null
+[2025-09-13T16:33:20.670272800] CLEANUP {"scanned":1599,"deleted":0}
+[2025-09-13T16:33:20.670775300] CLEANUP_RUN {"scanned":1599,"deleted":0}
+[2025-09-13T16:33:20.671773500] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-13T16:33:20.678699400] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-13T16:33:20.761075500] RESPONSE LOGIN STATUS=200 BODY={"token":"HARDCODED_TEST_TOKEN_12345"}
+[2025-09-13T16:33:20.766518500] REQUEST IMPORT URL=http://localhost:8081/api/GL/ImportJournal JSON=[{"docSerExternal":"2550235","branchNo":1,"docDate":"2025-05-14","docNo":null,"jvType":1,"amountLocal":212.0,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"5551","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":200.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"8881","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":100.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9990011","accountCodeDtl":"8882","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":102.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"}]}]
+[2025-09-13T16:33:20.772548100] RESPONSE IMPORT STATUS=200 BODY={"code":0,"message":"Success","content":[{"referenceId":"123","message":"The operation accomplished successfully.","errorNo":"0","docNo":"6767","docSer":"202500000100001001000016767"}]}
+[2025-09-13T16:33:20.787797800] SUMMARY {"ok":1,"fail":0}
+[2025-09-13T16:33:23.614020200] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-13T16:33:23.615019800] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-13T16:33:23.645574800] FETCH_SUMMARY returned=0 mode=unsent
+[2025-09-13T16:33:25.170569400] CLEANUP {"scanned":1599,"deleted":0}
+[2025-09-13T16:33:25.171068600] CLEANUP_RUN {"scanned":1599,"deleted":0}
+[2025-09-13T16:33:25.172068800] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-13T16:33:25.181588700] SUMMARY {"ok":0,"fail":0}
+[2025-09-20T15:25:25.345997800] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T15:25:25.351282300] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T15:25:25.590463500] FETCH_SUMMARY returned=1600 mode=sent
+[2025-09-20T16:00:16.451013100] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T16:00:16.460011600] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T16:00:16.646145] FETCH_SUMMARY returned=0 mode=unsent
+[2025-09-20T16:00:19.256897] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T16:00:19.257904300] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T16:00:19.347887800] FETCH_SUMMARY returned=1600 mode=sent
+[2025-09-20T16:05:39.308446600] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=0 gl=0
+[2025-09-20T16:05:39.314732200] STAMP_LOAD_SAMPLES statement-> [] | gl-> []
+[2025-09-20T16:05:39.473697] FETCH_SUMMARY returned=1 mode=unsent
+[2025-09-20T16:05:42.066243900] CLEANUP {"scanned":1599,"deleted":0}
+[2025-09-20T16:05:42.067248800] CLEANUP_RUN {"scanned":1599,"deleted":0}
+[2025-09-20T16:05:42.068301700] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T16:05:42.094088800] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-20T16:05:42.215437600] RESPONSE LOGIN STATUS=200 BODY={"token":"HARDCODED_TEST_TOKEN_12345"}
+[2025-09-20T16:05:42.221435900] REQUEST IMPORT URL=http://localhost:8081/api/GL/ImportJournal JSON=[{"docSerExternal":"2550235","branchNo":1,"docDate":"2025-05-14","docNo":null,"jvType":1,"amountLocal":212.0,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"5551","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":200.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"8881","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":100.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9990011","accountCodeDtl":"8882","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":102.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"}]}]
+[2025-09-20T16:05:42.225564900] RESPONSE IMPORT STATUS=200 BODY={"code":0,"message":"Success","content":[{"referenceId":"123","message":"The operation accomplished successfully.","errorNo":"0","docNo":"6767","docSer":"202500000100001001000016767"}]}
+[2025-09-20T16:05:42.242646800] SUMMARY {OK : 1 ✓ Fail : 0 X }
+[2025-09-20T16:05:52.686192600] CLEANUP {"scanned":1599,"deleted":0}
+[2025-09-20T16:05:52.686192600] CLEANUP_RUN {"scanned":1599,"deleted":0}
+[2025-09-20T16:05:52.687193300] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T16:05:52.704199100] SUMMARY {OK : 0 ✓ Fail : 0 X }
+[2025-09-20T16:05:58.593826800] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T16:05:58.593826800] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T16:05:58.640777500] FETCH_SUMMARY returned=0 mode=unsent
+[2025-09-20T17:09:44.612494300] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T17:09:44.624493] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T17:09:44.898139800] FETCH_SUMMARY returned=0 mode=unsent
+[2025-09-20T17:11:53.464327200] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-20T17:11:53.465326200] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-20T17:11:53.467560700] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T17:11:53.509866900] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-20T17:11:53.655605400] RESPONSE LOGIN STATUS=200 BODY={"token":"HARDCODED_TEST_TOKEN_12345"}
+[2025-09-20T17:11:53.667824200] SUMMARY {OK : 0 ✓ Fail : 3 X }
+[2025-09-20T17:11:57.542199400] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T17:11:57.543099200] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T17:11:57.645361300] FETCH_SUMMARY returned=3 mode=unsent
+[2025-09-20T17:12:02.016373] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-20T17:12:02.017663200] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-20T17:12:02.018671200] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T17:12:02.036745] SUMMARY {OK : 0 ✓ Fail : 3 X }
+[2025-09-20T17:23:17.900595500] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T17:23:17.906668700] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T17:23:17.925810700] FETCH_SUMMARY returned=0 mode=unsent
+[2025-09-20T17:23:20.029664700] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T17:23:20.030664300] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T17:23:20.138321600] FETCH_SUMMARY returned=3 mode=unsent
+[2025-09-20T17:23:22.451907600] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-20T17:23:22.451907600] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-20T17:23:22.453908200] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T17:23:22.480907800] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-20T17:23:22.644237200] RESPONSE LOGIN STATUS=200 BODY={"token":"HARDCODED_TEST_TOKEN_12345"}
+[2025-09-20T17:23:22.653236300] SUMMARY {OK : 0 ✓ Fail : 3 X }
+[2025-09-20T17:23:27.841853500] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T17:23:27.841853500] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T17:23:27.881851300] FETCH_SUMMARY returned=3 mode=unsent
+[2025-09-20T17:23:39.895688300] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-20T17:23:39.895688300] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-20T17:23:39.896889600] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T17:23:39.907894500] SUMMARY {OK : 0 ✓ Fail : 3 X }
+[2025-09-20T17:34:55.937641600] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T17:34:55.944646800] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T17:34:56.123065300] FETCH_SUMMARY returned=3 mode=unsent
+[2025-09-20T17:35:01.303506800] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-20T17:35:01.303506800] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-20T17:35:01.305505900] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T17:35:01.332725300] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-20T17:35:01.461805400] RESPONSE LOGIN STATUS=200 BODY={"token":"HARDCODED_TEST_TOKEN_12345"}
+[2025-09-20T17:35:01.473315400] SUMMARY {OK : 0 ✓ Fail : 3 X }
+[2025-09-20T17:35:12.628446600] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-20T17:35:12.628446600] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-20T17:35:12.629447200] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T17:35:12.640448700] SUMMARY {OK : 0 ✓ Fail : 3 X }
+[2025-09-20T17:47:03.749205] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T17:47:03.755224100] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T17:47:03.935011700] FETCH_SUMMARY returned=3 mode=unsent
+[2025-09-20T17:47:06.110061300] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-20T17:47:06.111061400] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-20T17:47:06.112060400] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T17:47:06.142060500] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-20T17:47:06.218982400] RESPONSE LOGIN STATUS=200 BODY={"token":"HARDCODED_TEST_TOKEN_12345"}
+[2025-09-20T17:47:06.229467200] SUMMARY {OK : 0 ✓ Fail : 3 X }
+[2025-09-20T17:51:52.198171700] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T17:51:52.205170200] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T17:51:52.395858300] FETCH_SUMMARY returned=3 mode=unsent
+[2025-09-20T17:51:55.709102] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-20T17:51:55.709102] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-20T17:51:55.710534400] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T17:51:55.740436100] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-20T17:51:55.838021800] RESPONSE LOGIN STATUS=200 BODY={"token":"HARDCODED_TEST_TOKEN_12345"}
+[2025-09-20T17:51:55.846167700] SUMMARY {OK : 0 ✓ Fail : 3 X }
+[2025-09-20T17:52:25.504770] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=0 gl=0
+[2025-09-20T17:52:25.504770] STAMP_LOAD_SAMPLES statement-> [] | gl-> []
+[2025-09-20T17:52:25.544374700] FETCH_SUMMARY returned=4 mode=unsent
+[2025-09-20T17:52:27.127020] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-20T17:52:27.128020600] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-20T17:52:27.130020300] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T17:52:27.148019500] REQUEST IMPORT URL=http://localhost:8081/api/GL/ImportJournal JSON=[{"docSerExternal":"2550235","branchNo":1,"docDate":"2025-05-14","docNo":null,"jvType":1,"amountLocal":212.0,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"5551","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":200.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"8881","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":100.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9990011","accountCodeDtl":"8882","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":102.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"}]}]
+[2025-09-20T17:52:27.155519500] RESPONSE IMPORT STATUS=200 BODY={"code":0,"message":"Success","content":[{"referenceId":"123","message":"The operation accomplished successfully.","errorNo":"0","docNo":"6767","docSer":"202500000100001001000016767"}]}
+[2025-09-20T17:52:27.180003700] SUMMARY {OK : 1 ✓ Fail : 3 X }
+[2025-09-20T17:54:38.916666] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T17:54:38.922075900] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T17:54:39.089623900] FETCH_SUMMARY returned=3 mode=unsent
+[2025-09-20T18:01:18.572860900] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=1 gl=0
+[2025-09-20T18:01:18.579292100] STAMP_LOAD_SAMPLES statement-> [2550235] | gl-> []
+[2025-09-20T18:01:18.756088700] FETCH_SUMMARY returned=3 mode=unsent
+[2025-09-20T18:01:57.791038700] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=0 gl=0
+[2025-09-20T18:01:57.791038700] STAMP_LOAD_SAMPLES statement-> [] | gl-> []
+[2025-09-20T18:02:05.816279500] FETCH_SUMMARY returned=4 mode=unsent
+[2025-09-20T18:02:09.473574] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-20T18:02:09.474574300] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-20T18:02:09.476576400] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb
+[2025-09-20T18:02:09.512965800] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-20T18:02:09.693188300] RESPONSE LOGIN STATUS=200 BODY={"token":"HARDCODED_TEST_TOKEN_12345"}
+[2025-09-20T18:02:09.701577300] REQUEST IMPORT URL=http://localhost:8081/api/GL/ImportJournal JSON=[{"docSerExternal":"2550235","branchNo":1,"docDate":"2025-05-14","docNo":null,"jvType":1,"amountLocal":212.0,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"5551","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":200.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"8881","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":100.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9990011","accountCodeDtl":"8882","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":102.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"}]}]
+[2025-09-20T18:02:09.706574200] RESPONSE IMPORT STATUS=200 BODY={"code":99,"message":"فشل العملية","content":[{"referenceId":"N/A","message":"فشل: الحساب غير موجود","errorNo":"99"}]}
+[2025-09-20T18:02:09.717676600] SUMMARY {OK : 0 ✓ Fail : 4 X }
+[2025-09-20T18:05:40.258475100] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent\TimeStamp.mdb statement=0 gl=0
+[2025-09-20T18:05:40.264831900] STAMP_LOAD_SAMPLES statement-> [] | gl-> []
+[2025-09-20T18:05:40.441939700] FETCH_SUMMARY returned=4 mode=unsent
