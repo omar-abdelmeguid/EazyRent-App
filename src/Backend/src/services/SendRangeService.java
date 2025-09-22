@@ -2,6 +2,8 @@ package services;
 
 import db.AccessConnection;
 import db.TimeStamp;  // connects to TimeStamp.mdb
+
+import java.io.PrintWriter;
 import java.util.concurrent.ConcurrentHashMap;
 
 import java.io.FileWriter;
@@ -161,6 +163,7 @@ public class SendRangeService {
                     error = error.isEmpty() ? msg : (error + " | " + msg);
                     // if you have the per-row map, keep this line; otherwise you can omit it
                     putError(serStr, msg);
+                    appendToLog("ERROR: " + msg);
                     System.out.println("RULE-HIT ser=" + serStr + " -> " + msg);
 
 
@@ -245,7 +248,8 @@ public class SendRangeService {
                     fail++;
                     System.err.println("FAIL " + serStr + " response ok, but stamping failed (TimeStamp.mdb)");
                     error += (error.isEmpty() ? "" : " | ") + "خطأ في التحديث";
-                    putError(serStr, "خطأ في التحديث");                          // new: per-row
+                    putError(serStr, "خطأ في التحديث");
+                    appendToLog("FAIL " + serStr + " | خطأ في التحديث (stamping failed)");
 
                 }
 
@@ -281,6 +285,14 @@ public class SendRangeService {
         return v == null || String.valueOf(v).trim().isEmpty();
     }
 
+    private static void appendToLog(String message) {
+        try (FileWriter fw = new FileWriter("log.txt", true);
+             PrintWriter pw = new PrintWriter(fw)) {
+            pw.println(java.time.LocalDateTime.now() + " - " + message);
+        } catch (IOException e) {
+            e.printStackTrace(); // fallback to console
+        }
+    }
 
 
     // Arabic extractor: returns all Arabic snippets joined by " | "
@@ -444,27 +456,31 @@ public class SendRangeService {
     }
 
 
-    private static boolean looksSuccessful(String respBody) {
-        if (respBody == null) return false;
-        String lower = respBody.toLowerCase(Locale.ROOT);
+    private static boolean looksSuccessful(String body) {
+        if (body == null) return false;
+        String lower = body.toLowerCase(Locale.ROOT);
 
-        int codeIdx = lower.indexOf("\"code\"");
-        if (codeIdx >= 0) {
-            int colon = lower.indexOf(':', codeIdx);
+        // 1) code == 0
+        int i = lower.indexOf("\"code\"");
+        if (i >= 0) {
+            int colon = lower.indexOf(':', i);
             if (colon > 0) {
                 StringBuilder num = new StringBuilder();
                 for (int j = colon + 1; j < lower.length(); j++) {
                     char ch = lower.charAt(j);
                     if (Character.isWhitespace(ch)) continue;
-                    if (Character.isDigit(ch)) num.append(ch);
-                    else if (num.length() > 0 || ch != '\"') break;
+                    if (Character.isDigit(ch)) { num.append(ch); continue; }
+                    break;
                 }
-                return num.toString().equals("0");
+                if (num.length() > 0) return "0".contentEquals(num); // success only if 0
             }
         }
-        if (lower.contains("\"errorno\"") && lower.contains("\"0\"")) return true;
-        return lower.contains("success");
+
+        // 2) fall back: "errorNo":"0"
+        return lower.contains("\"errorno\"") && lower.contains("\"0\"");
+        // NOTE: intentionally do NOT check for the word "success" anywhere.
     }
+
     /**
      * Remove rows from TimeStamp.mdb for which home.mdb has Done=TRUE.
      * If startDate/endDate are non-blank, only rows with [Date] BETWEEN startDate AND endDate are considered.

@@ -18,6 +18,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javafx.application.Platform;
+import javafx.stage.Window;
 
 public class MainGUI extends Application {
 
@@ -221,8 +223,10 @@ public class MainGUI extends Application {
             table.getItems().setAll(task.getValue());
             showToast(I18n.t("toast.loaded") + task.getValue().size());
             loader.setVisible(false);
-            browseBtn.setDisable(false);
+            browseBtn.setDisable(false);   // <-- browseBtn here
         });
+
+
 
         task.setOnFailed(ev -> {
             statusLabel.setText("Error: " + task.getException().getMessage());
@@ -231,7 +235,9 @@ public class MainGUI extends Application {
             browseBtn.setDisable(false);
         });
 
-        new Thread(task, "browse-task").start();
+        Thread bt = new Thread(task, "browse-task");
+        bt.setDaemon(true);
+        bt.start();
     }
 
     private void onChangeDb(Stage owner, Button changeDbBtn) {
@@ -289,34 +295,29 @@ public class MainGUI extends Application {
         };
 
         task.setOnSucceeded(ev -> {
-            showToast("Send result: " + task.getValue());
-            // === NEW: pull per-row errors from backend and show them in the table ===
-            // Requires: Record has getSer()/setError(String), and table has an "Error" column bound to getError().
-            Map<String,String> errs = SendRangeService.getLastErrorsSnapshot();
-            if (errs != null && !errs.isEmpty()) {
-                for (Record r : table.getItems()) {
-                    String e = errs.get(r.getSer());
-                    if (e != null && !e.isBlank()) {
-                        r.setError(e);
-                    }
-                }
+            // If the window is closing/closed, skip UI work
+            Window w = (table.getScene() == null) ? null : table.getScene().getWindow();
+            if (w == null || !w.isShowing()) return;
 
+            showToast("Send result: " + task.getValue());
+
+            Platform.runLater(() -> {
+                Map<String,String> errs = SendRangeService.getLastErrorsSnapshot();
                 System.out.println("GUI ERR MAP SIZE = " + (errs == null ? -1 : errs.size()));
                 if (errs != null) errs.forEach((k,v) -> System.out.println("ERR-GUI " + k + " -> " + v));
 
-// apply to rows
                 for (Record r : table.getItems()) {
-                    System.out.println("ROW SER=" + r.getSer()); // debug
+                    System.out.println("ROW SER=" + r.getSer());
                     String e = (errs == null) ? null : errs.get(r.getSer());
                     if (e != null && !e.isBlank()) r.setError(e);
                 }
 
-
-                table.refresh();
-            }
-            loader.setVisible(false);
-            sendBtn.setDisable(false);
+                if (table.getScene() != null) table.refresh();
+                loader.setVisible(false);
+                sendBtn.setDisable(false);   // <-- sendBtn here
+            });
         });
+
         task.setOnFailed(ev -> {
             statusLabel.setText("Error: " + task.getException().getMessage());
             statusLabel.setVisible(true);
@@ -324,7 +325,18 @@ public class MainGUI extends Application {
             sendBtn.setDisable(false);
         });
 
-        new Thread(task, "send-task").start();
+        Thread st = new Thread(task, "send-task");
+        st.setDaemon(true);
+        st.start();
+    }
+    @Override
+    public void stop() {
+        try {
+            // If you have a SingleInstanceLock that needs release, do it here:
+            // SingleInstanceLock.release();
+        } catch (Exception ignore) {}
+        // Belt and suspenders: ensure JVM quits even if something forgot to be daemon
+        System.exit(0);
     }
 
     private void openAdminDialog() {
@@ -405,10 +417,13 @@ public class MainGUI extends Application {
             System.out.println("Another instance is already running.");
             return; // Exit if already running
         }
-        new Thread(() -> {
+        Thread wu = new Thread(() -> {
             try (Connection ignored = AccessConnection.getConnection()) { /* warm-up */ }
             catch (Exception e) { e.printStackTrace(); }
-        }, "warmup-thread").start();
+        }, "warmup-thread");
+        wu.setDaemon(true);
+        wu.start();
+
 
         launch(args);
     }

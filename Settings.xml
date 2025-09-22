@@ -2,8 +2,8 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>C:\Users\omara\OneDrive\Desktop\EazyRent\out\artifacts\Frontend_jar\Frontend.jar</jar>
-  <outfile>C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe</outfile>
+  <jar>C:\Users\omara\OneDrive\Desktop\EazyRent MAIN\out\artifacts\Frontend_jar\Frontend.jar</jar>
+  <outfile>C:\Users\omara\OneDrive\Desktop\EazyRent MAIN\EasyRent.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>
