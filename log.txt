@@ -1,0 +1,48 @@
+[2025-09-24T20:06:27.895706600] STAMP_LOAD_ERR java.lang.IllegalStateException: TimeStamp DB not found at: C:/Users/omara/OneDrive/Desktop/EazyRent/TimeStamp.accdb
+[2025-09-24T20:06:59.697937700] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent_MAIN\TimeStamp.mdb statement=0 gl=0
+[2025-09-24T20:06:59.699957200] STAMP_LOAD_SAMPLES statement-> [] | gl-> []
+[2025-09-24T20:07:09.407526900] FETCH_SUMMARY returned=4 mode=unsent
+[2025-09-24T20:07:11.042485300] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-24T20:07:11.043487300] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-24T20:07:11.045484900] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent_MAIN\TimeStamp.mdb
+[2025-09-24T20:07:11.077485500] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-24T20:07:11.181533600] ERROR LOGIN Login error EX=ConnectException: null
+[2025-09-24T20:07:57.532796600] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-24T20:07:57.532796600] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-24T20:07:57.534795100] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent_MAIN\TimeStamp.mdb
+[2025-09-24T20:07:57.561797400] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-24T20:07:57.623312] RESPONSE LOGIN STATUS=200 BODY={"token":"HARDCODED_TEST_TOKEN_12345"}
+2025-09-24T20:07:57.623312 - ERROR: يرجى ملء حسابات المدين والدائن
+2025-09-24T20:07:57.624312300 - ERROR: يرجى ملء حسابات المدين والدائن
+2025-09-24T20:07:57.625312700 - ERROR: يرجى ملء حسابات المدين والدائن
+[2025-09-24T20:07:57.631312700] REQUEST IMPORT URL=http://localhost:8081/api/GL/ImportJournal JSON=[{"docSerExternal":"2550235","branchNo":1,"docDate":"2025-05-14","docNo":null,"jvType":1,"amountLocal":212.0,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"5551","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":200.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"8881","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":100.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9990011","accountCodeDtl":"8882","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":102.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"}]}]
+[2025-09-24T20:07:57.635312800] RESPONSE IMPORT STATUS=200 BODY={"code":2002,"message":"Success","content":[{"referenceId":"N/A","message":"فشل: الحساب غير موجود","errorNo":"99"}]}
+[2025-09-24T20:07:57.639312200] SUMMARY {OK : 0 ✓ Fail : 4 X }
+[2025-09-24T20:20:06.770486700] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent_MAIN\TimeStamp.mdb statement=0 gl=0
+[2025-09-24T20:20:06.776501800] STAMP_LOAD_SAMPLES statement-> [] | gl-> []
+[2025-09-24T20:20:06.946168700] FETCH_SUMMARY returned=4 mode=unsent
+[2025-09-24T20:20:14.230938500] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-24T20:20:14.230938500] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-24T20:20:14.232939900] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent_MAIN\TimeStamp.mdb
+[2025-09-24T20:20:14.262056300] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-24T20:20:14.376565100] RESPONSE LOGIN STATUS=200 BODY={"token":"HARDCODED_TEST_TOKEN_12345"}
+2025-09-24T20:20:14.377564900 - ERROR: يرجى ملء حسابات المدين والدائن
+2025-09-24T20:20:14.378565800 - ERROR: يرجى ملء حسابات المدين والدائن
+2025-09-24T20:20:14.378565800 - ERROR: يرجى ملء حسابات المدين والدائن
+[2025-09-24T20:20:14.383583900] REQUEST IMPORT URL=http://localhost:8081/api/GL/ImportJournal JSON=[{"docSerExternal":"2550235","branchNo":1,"docDate":"2025-05-14","docNo":null,"jvType":1,"amountLocal":212.0,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"5551","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":200.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"8881","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":100.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9990011","accountCodeDtl":"8882","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":102.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"}]}]
+[2025-09-24T20:20:14.388357900] RESPONSE IMPORT STATUS=200 BODY={"code":2002,"message":"Success","content":[{"referenceId":"N/A","message":"فشل: الحساب غير موجود","errorNo":"99"}]}
+[2025-09-24T20:20:14.395359600] SUMMARY {OK : 0 ✓ Fail : 4 X }
+[2025-09-24T20:26:44.869642400] STAMP_LOAD path=C:\Users\omara\OneDrive\Desktop\EazyRent_MAIN\TimeStamp.mdb statement=0 gl=0
+[2025-09-24T20:26:44.874644200] STAMP_LOAD_SAMPLES statement-> [] | gl-> []
+[2025-09-24T20:26:45.025108900] FETCH_SUMMARY returned=4 mode=unsent
+[2025-09-24T20:26:47.688883300] CLEANUP {"scanned":1596,"deleted":0}
+[2025-09-24T20:26:47.689882800] CLEANUP_RUN {"scanned":1596,"deleted":0}
+[2025-09-24T20:26:47.690881900] ERROR ANTI_RESEND TimeStamp path=C:\Users\omara\OneDrive\Desktop\EazyRent_MAIN\TimeStamp.mdb
+[2025-09-24T20:26:47.719883100] REQUEST LOGIN URL=http://localhost:8081/api/Auth/login JSON={"userId":"1","password":"1"}
+[2025-09-24T20:26:47.805641200] RESPONSE LOGIN STATUS=200 BODY={"token":"HARDCODED_TEST_TOKEN_12345"}
+2025-09-24T20:26:47.806642500 - ERROR: يرجى ملء حسابات المدين والدائن
+2025-09-24T20:26:47.807641900 - ERROR: يرجى ملء حسابات المدين والدائن
+2025-09-24T20:26:47.808641800 - ERROR: يرجى ملء حسابات المدين والدائن
+[2025-09-24T20:26:47.812643] REQUEST IMPORT URL=http://localhost:8081/api/GL/ImportJournal JSON=[{"docSerExternal":"2550235","branchNo":1,"docDate":"2025-05-14","docNo":null,"jvType":1,"amountLocal":212.0,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"5551","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":200.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9100309","accountCodeDtl":"8881","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":100.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"},{"docDueDate":"2025-05-14","accountCode":"9990011","accountCodeDtl":"8882","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":-1,"amountLocal":102.0,"amountForeign":0,"costCenterCode":null,"chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0,"description":"room#= 309 rent#= 68372 سعر اليوم  - Rate309"}]}]
+[2025-09-24T20:26:47.816642500] RESPONSE IMPORT STATUS=200 BODY={"code":2002,"message":"Success","content":[{"referenceId":"N/A","message":"فشل: الحساب غير موجود","errorNo":"99"}]}
+[2025-09-24T20:26:47.819666300] SUMMARY {OK : 0 ✓ Fail : 4 X }

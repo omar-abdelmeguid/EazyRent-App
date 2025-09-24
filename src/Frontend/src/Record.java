@@ -2,6 +2,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Record {
+
     private final StringProperty date        = new SimpleStringProperty("");
     private final StringProperty amount      = new SimpleStringProperty("");
     private final StringProperty description = new SimpleStringProperty("");
@@ -12,16 +13,17 @@ public class Record {
     private final StringProperty credit1     = new SimpleStringProperty("");
     private final StringProperty debit2      = new SimpleStringProperty("");
     private final StringProperty credit2     = new SimpleStringProperty("");
-    private final StringProperty DrcostCenterCode = new SimpleStringProperty("");
-    private final StringProperty CrcostCenterCode = new SimpleStringProperty("");
+    private final StringProperty DrCostCenterCode = new SimpleStringProperty("");
+    private final StringProperty CrCostCenterCode = new SimpleStringProperty("");
     private String ser;   // NEW: to match errors by Ser
-    private String error;
+    private final StringProperty error = new SimpleStringProperty("");
+
 
 
     public Record(String date, String amount, String description, String type,
                   String roomNo, String rentNo,
                   String debit1, String credit1,
-                  String debit2, String credit2,String DrcostCenterCode,String CrcostCenterCode, String ser,String error) {
+                  String debit2, String credit2,String DrCostCenterCode,String CrCostCenterCode, String ser,String error) {
         this.date.set(s(date));
         this.amount.set(s(amount));
         this.description.set(s(description));
@@ -32,11 +34,11 @@ public class Record {
         this.credit1.set(s(credit1));
         this.debit2.set(s(debit2));
         this.credit2.set(s(credit2));
-        this.DrcostCenterCode.set(DrcostCenterCode);
-        this.CrcostCenterCode.set(CrcostCenterCode);
+        this.DrCostCenterCode.set(DrCostCenterCode);
+        this.CrCostCenterCode.set(CrCostCenterCode);
         this.ser = ser;
         // set existing fields...
-        this.error = error;
+        this.error.set(s(error));
 
     }
 
@@ -56,8 +58,8 @@ public class Record {
     public String getCredit1()     { return credit1.get(); }
     public String getDebit2()      { return debit2.get(); }
     public String getCredit2()     { return credit2.get(); }
-    public String getDrCostCenterCode() { return DrcostCenterCode.get(); }
-    public String getCrCostCenterCode() { return CrcostCenterCode.get(); }
+    public String getDrCostCenterCode() { return DrCostCenterCode.get(); }
+    public String getCrCostCenterCode() { return CrCostCenterCode.get(); }
 
 
 
@@ -72,10 +74,18 @@ public class Record {
     public StringProperty credit1Property()     { return credit1; }
     public StringProperty debit2Property()      { return debit2; }
     public StringProperty credit2Property()     { return credit2; }
-    public StringProperty DrcostCenterCodeProperty() { return DrcostCenterCode; }
-    public StringProperty CrcostCenterCodeProperty() { return CrcostCenterCode; }
+    public StringProperty DrcostCenterCodeProperty() { return DrCostCenterCode; }
+    public StringProperty CrcostCenterCodeProperty() { return CrCostCenterCode; }
 
     public String getSer() { return ser; }
-    public String getError() { return error; }
-    public void setError(String e) { this.error = e; }
+//    public String getError() { return error; }
+//    public void setError(String e) { this.error = e; }
+//    private final StringProperty error = new SimpleStringProperty("");
+
+    public String getError() { return error.get(); }
+    public void setError(String value) { error.set(value); }
+    public StringProperty errorProperty() { return error; }
+
+// (best: use a StringProperty errorProperty())
+
 }

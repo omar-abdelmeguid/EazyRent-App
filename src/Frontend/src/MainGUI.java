@@ -5,6 +5,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
@@ -159,6 +160,7 @@ public class MainGUI extends Application {
         sendBtn.setOnAction(e -> doSend(fromDate, toDate, sendBtn));
         settingsBtn.setOnAction(e -> openAdminDialog());
 
+
         // ---------- Frame (banner + top controls + center) ----------
         BorderPane root = new BorderPane();
         Scene scene = new Scene(root, 1200, 620);
@@ -181,6 +183,8 @@ public class MainGUI extends Application {
         primaryStage.setTitle("EazyRent");
         primaryStage.setScene(scene);
         primaryStage.show();
+        primaryStage.setOnCloseRequest(e -> Platform.exit());
+
     }
 
     // ----------------- Helpers -----------------
@@ -293,7 +297,6 @@ public class MainGUI extends Application {
                 return SendRangeService.sendRange(from.toString(), to.toString());
             }
         };
-
         task.setOnSucceeded(ev -> {
             // If the window is closing/closed, skip UI work
             Window w = (table.getScene() == null) ? null : table.getScene().getWindow();
@@ -314,9 +317,34 @@ public class MainGUI extends Application {
 
                 if (table.getScene() != null) table.refresh();
                 loader.setVisible(false);
-                sendBtn.setDisable(false);   // <-- sendBtn here
+                sendBtn.setDisable(false);
             });
         });
+//
+//
+//        task.setOnSucceeded(ev -> {
+//            // If the window is closing/closed, skip UI work
+//            Window w = (table.getScene() == null) ? null : table.getScene().getWindow();
+//            if (w == null || !w.isShowing()) return;
+//
+//            showToast("Send result: " + task.getValue());
+//
+//            Platform.runLater(() -> {
+//                Map<String,String> errs = SendRangeService.getLastErrorsSnapshot();
+//                System.out.println("GUI ERR MAP SIZE = " + (errs == null ? -1 : errs.size()));
+//                if (errs != null) errs.forEach((k,v) -> System.out.println("ERR-GUI " + k + " -> " + v));
+//
+//                for (Record r : table.getItems()) {
+//                    System.out.println("ROW SER=" + r.getSer());
+//                    String e = (errs == null) ? null : errs.get(r.getSer());
+//                    if (e != null && !e.isBlank()) r.setError(e);
+//                }
+//
+//                if (table.getScene() != null) table.refresh();
+//                loader.setVisible(false);
+//                sendBtn.setDisable(false);   // <-- sendBtn here
+//            });
+//        });
 
         task.setOnFailed(ev -> {
             statusLabel.setText("Error: " + task.getException().getMessage());
