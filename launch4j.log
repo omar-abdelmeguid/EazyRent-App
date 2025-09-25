@@ -656,3 +656,23 @@ Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
 Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe" MainGUI
 Args length:	183/32768 chars
 Exit code:	0
+
+
+Version:	3.50
+CmdLine:	C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	C:\Users\omara\OneDrive\Desktop\EazyRent\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+JRE paths:	C:\Program Files\Java\jdk-21
+Check launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe (OK)
+Version string: 1.021.000_008 / 64-Bit (OK)
+Main class:	MainGUI
+Info:		Classpath not defined.
+Launcher:	C:\Program Files\Java\jdk-21\bin\javaw.exe
+Launcher args:	--module-path C:\javafx-sdk-21.0.2\lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base -classpath "C:\Users\omara\OneDrive\Desktop\EazyRent\EasyRent.exe" MainGUI
+Args length:	183/32768 chars
+Exit code:	0

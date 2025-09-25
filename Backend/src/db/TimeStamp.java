@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 public class TimeStamp {
+    // Default to your current .accdb (works for .mdb too once setPath is called)
     private static String dbPath = "C:/Users/omara/OneDrive/Desktop/EazyRent/TimeStamp.accdb";
     private static final String MEMORY_FILE = "timestamp_location.txt";
 
@@ -16,9 +17,9 @@ public class TimeStamp {
                 String saved = Files.readString(file).trim();
                 if (isValidTimeStampPath(saved)) {
                     dbPath = saved;
-                    System.out.println("Loaded TimeStamp.mdb path: " + dbPath);
+                    System.out.println("Loaded TimeStamp DB path: " + dbPath);
                 } else {
-                    System.out.println("Ignoring saved path (not a valid TimeStamp.mdb): " + saved);
+                    System.out.println("Ignoring saved path (not a valid Access DB): " + saved);
                 }
             }
         } catch (IOException e) {
@@ -26,27 +27,29 @@ public class TimeStamp {
         }
     }
 
-
+    /** Accept any existing file that ends with .mdb or .accdb */
     private static boolean isValidTimeStampPath(String p) {
         if (p == null || p.isBlank()) return false;
         try {
             Path path = Paths.get(p);
-            if (!Files.exists(path)) return false;
+            if (!Files.exists(path) || !Files.isRegularFile(path)) return false;
             String s = p.replace('\\','/').toLowerCase();
-            // accept either .mdb or .accdb
-            return s.endsWith("/timestamp.mdb") || s.endsWith("/timestamp.accdb");
+            return s.endsWith(".mdb") || s.endsWith(".accdb");
         } catch (Exception ignore) {
             return false;
         }
     }
 
-
+    /** Persist a new path if it's a valid Access DB (.mdb/.accdb) */
     public static void setPath(String newPath) {
-        dbPath = newPath;
+        if (!isValidTimeStampPath(newPath)) {
+            throw new IllegalArgumentException("Not a valid Access DB file (.mdb/.accdb): " + newPath);
+        }
+        dbPath = Paths.get(newPath).toAbsolutePath().toString();
         try {
             Files.writeString(Paths.get(MEMORY_FILE), dbPath,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            System.out.println("Saved TimeStamp.mdb path: " + dbPath);
+            System.out.println("Saved TimeStamp DB path: " + dbPath);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -56,12 +59,13 @@ public class TimeStamp {
         return dbPath;
     }
 
-    /** Opens a connection to TimeStamp.mdb */
+    /** Opens a connection to the TimeStamp DB (MDB or ACCDB) via UCanAccess */
     public static Connection getConnection() throws Exception {
-        // Optional safety: fail fast if file missing
-        if (!Files.exists(Paths.get(dbPath))) {
-            throw new IllegalStateException("TimeStamp.mdb not found at: " + dbPath);
+        Path p = Paths.get(dbPath);
+        if (!Files.exists(p)) {
+            throw new IllegalStateException("TimeStamp DB not found at: " + dbPath);
         }
+        // Spaces are fine in UCanAccess paths; no extra encoding needed.
         String url = "jdbc:ucanaccess://" + dbPath + ";memory=false";
         return DriverManager.getConnection(url);
     }
