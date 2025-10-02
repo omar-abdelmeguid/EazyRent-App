@@ -146,3 +146,9 @@
     -fx-background-color: derive(#999, -20%);
     -fx-background-radius: 9px;
 }
+.table-row-cell.row-error {
+  -fx-background-color: rgba(211, 47, 47, 0.08);
+}
+
+}
+

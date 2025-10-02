@@ -13,17 +13,22 @@ public class Record {
     private final StringProperty credit1     = new SimpleStringProperty("");
     private final StringProperty debit2      = new SimpleStringProperty("");
     private final StringProperty credit2     = new SimpleStringProperty("");
+
+    // Note: field names use Dr/Cr + Cost..., but property *names* we expose match TableFactory keys:
+    // "DrcostCenterCode" and "CrcostCenterCode"
     private final StringProperty DrCostCenterCode = new SimpleStringProperty("");
     private final StringProperty CrCostCenterCode = new SimpleStringProperty("");
-    private String ser;   // NEW: to match errors by Ser
+
     private final StringProperty error = new SimpleStringProperty("");
-
-
+    private final String ser; // used to match errors by Ser
 
     public Record(String date, String amount, String description, String type,
                   String roomNo, String rentNo,
                   String debit1, String credit1,
-                  String debit2, String credit2,String DrCostCenterCode,String CrCostCenterCode, String ser,String error) {
+                  String debit2, String credit2,
+                  String DrCostCenterCode, String CrCostCenterCode,
+                  String ser, String error) {
+
         this.date.set(s(date));
         this.amount.set(s(amount));
         this.description.set(s(description));
@@ -34,20 +39,18 @@ public class Record {
         this.credit1.set(s(credit1));
         this.debit2.set(s(debit2));
         this.credit2.set(s(credit2));
-        this.DrCostCenterCode.set(DrCostCenterCode);
-        this.CrCostCenterCode.set(CrCostCenterCode);
-        this.ser = ser;
-        // set existing fields...
-        this.error.set(s(error));
 
+        // null-safe for cost centers
+        this.DrCostCenterCode.set(s(DrCostCenterCode));
+        this.CrCostCenterCode.set(s(CrCostCenterCode));
+
+        this.ser = s(ser);
+        this.error.set(s(error));
     }
 
     private static String s(String v) { return v == null ? "" : v; }
 
-    // Getters for PropertyValueFactory (names must match columns)
-    // getter
-
-    // optional property if you bind/edit later
+    // ----- Getters (PropertyValueFactory uses these or the *Property() methods) -----
     public String getDate()        { return date.get(); }
     public String getAmount()      { return amount.get(); }
     public String getDescription() { return description.get(); }
@@ -58,12 +61,22 @@ public class Record {
     public String getCredit1()     { return credit1.get(); }
     public String getDebit2()      { return debit2.get(); }
     public String getCredit2()     { return credit2.get(); }
+
+    // Existing getters (capital C)
     public String getDrCostCenterCode() { return DrCostCenterCode.get(); }
     public String getCrCostCenterCode() { return CrCostCenterCode.get(); }
 
+    // 🔐 Alias getters to match TableFactory property keys ("DrcostCenterCode"/"CrcostCenterCode")
+    public String getDrcostCenterCode() { return DrCostCenterCode.get(); }
+    public String getCrcostCenterCode() { return CrCostCenterCode.get(); }
 
+    public String getSer() { return ser; }
 
-    // Properties (optional if you ever want to bind/edit)
+    public String getError() { return error.get(); }
+    public void setError(String value) { error.set(s(value)); }
+    public StringProperty errorProperty() { return error; }
+
+    // ----- Properties -----
     public StringProperty dateProperty()        { return date; }
     public StringProperty amountProperty()      { return amount; }
     public StringProperty descriptionProperty() { return description; }
@@ -74,18 +87,8 @@ public class Record {
     public StringProperty credit1Property()     { return credit1; }
     public StringProperty debit2Property()      { return debit2; }
     public StringProperty credit2Property()     { return credit2; }
+
+    // Keep property names matching TableFactory keys:
     public StringProperty DrcostCenterCodeProperty() { return DrCostCenterCode; }
     public StringProperty CrcostCenterCodeProperty() { return CrCostCenterCode; }
-
-    public String getSer() { return ser; }
-//    public String getError() { return error; }
-//    public void setError(String e) { this.error = e; }
-//    private final StringProperty error = new SimpleStringProperty("");
-
-    public String getError() { return error.get(); }
-    public void setError(String value) { error.set(value); }
-    public StringProperty errorProperty() { return error; }
-
-// (best: use a StringProperty errorProperty())
-
 }

@@ -1,13 +1,12 @@
 package services;
 
 import db.AccessConnection;
-import db.TimeStamp;  // connects to TimeStamp.mdb
-
-import java.io.PrintWriter;
-import java.util.concurrent.ConcurrentHashMap;
+import db.TimeStamp;      // connects to TimeStamp.mdb
+import db.ErrorLog;      // persist per-row errors for GUI
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -18,6 +17,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public class SendRangeService {
 
@@ -39,10 +40,9 @@ public class SendRangeService {
     private static String HDR_YEAR     = "2025";
     private static String HDR_ACTIVITY = "1";
 
-
-
-    // ----------- TOKEN CACHE -----------------------------------------------------
-    private static String cachedToken;
+    // ----------- TOKEN CACHE + AUTH LOCK ----------------------------------------
+    private static volatile String cachedToken;
+    private static final Object AUTH_LOCK = new Object();
 
     // ----------- File Logger -----------------------------------------------------
     private static synchronized void logToFile(String tag, String message) {
@@ -52,20 +52,17 @@ public class SendRangeService {
             e.printStackTrace();
         }
     }
-
     private static void logRequest(String where, String url, String json) {
         logToFile("REQUEST", where + " URL=" + url + " JSON=" + json);
     }
-
     private static void logResponse(String where, int status, String body) {
         logToFile("RESPONSE", where + " STATUS=" + status + " BODY=" + body);
     }
-
     private static void logError(String where, String message, Throwable t) {
         logToFile("ERROR", where + " " + message + (t != null ? " EX=" + t.getClass().getSimpleName() + ": " + t.getMessage() : ""));
     }
 
-    // ----------- Auth ------------------------------------------------------------
+    // ----------- Auth (login + token extraction) --------------------------------
     /** Logs in EXACTLY like your cURL (headers + body) and returns a token string. */
     public static String loginExact() {
         if (cachedToken != null) return cachedToken;
@@ -74,9 +71,9 @@ public class SendRangeService {
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(LOGIN_URL))
                 .timeout(REQ_TIMEOUT)
-                .header("accept", HDR_ACCEPT)           // text/plain
-                .header("year", HDR_YEAR)               // 2025
-                .header("activity", HDR_ACTIVITY)       // 1
+                .header("accept", HDR_ACCEPT)     // text/plain
+                .header("year", HDR_YEAR)         // 2025
+                .header("activity", HDR_ACTIVITY) // 1
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
                 .build();
@@ -101,6 +98,7 @@ public class SendRangeService {
         }
     }
 
+    // ----------- In-memory last-errors (also persisted via ErrorLog) ------------
     private static final Map<String,String> LAST_ERRORS = new ConcurrentHashMap<>();
     public static Map<String,String> getLastErrorsSnapshot() {
         return new LinkedHashMap<>(LAST_ERRORS); // safe copy for UI
@@ -109,16 +107,25 @@ public class SendRangeService {
         if (ser == null || msg == null || msg.isBlank()) return;
         LAST_ERRORS.put(ser.trim(), msg);
     }
+    private static void putErrorPersist(String ser, String msg) {
+        putError(ser, msg);
+        ErrorLog.upsertError(ser, msg);
+    }
+    private static void clearErrorPersist(String ser) {
+        if (ser == null) return;
+        LAST_ERRORS.remove(ser.trim());
+        ErrorLog.deleteError(ser.trim());
+    }
 
+    // ----------- Main entry: send range -----------------------------------------
     /**
-     * Reads pending rows from home.mdb; if HTTP import succeeds,
-     * INSERT a row into TimeStamp.mdb -> [TimeStamp]([Ser],[Table],[TimeStamp]).
+     * Reads pending rows from home.mdb; sends to API; on success stamps TimeStamp.mdb
+     * AND updates home.mdb's TR_TimeStamp; on failure logs error per Ser (ErrorLog).
      */
     public static String sendRange(String startDate, String endDate) {
         int ok = 0, fail = 0, done = 0;
-        String error = ""; // will hold Arabic sentences if present
-        LAST_ERRORS.clear();            // ← new: reset per-run per-row errors
-
+        String error = "";
+        LAST_ERRORS.clear();  // reset per-run errors
 
         // Clean up TimeStamp rows that are already Done in home
         String cleanupSummary = cleanupDoneStamps(startDate, endDate);
@@ -127,11 +134,8 @@ public class SendRangeService {
         // 1) Fetch rows (NOT already stamped) from home.mdb
         List<Map<String,Object>> rows;
         try (Connection home = AccessConnection.getConnection()) {
-            // make __SentKeys reflect current TimeStamp contents in THIS same connection
             logError("ANTI_RESEND", "TimeStamp path=" + db.TimeStamp.getPath(), null);
-
-            final String q =buildAntiResendSql();
-            // uses __SentKeys
+            final String q = buildAntiResendSql(); // uses TR_TimeStamp IS NULL
             try (PreparedStatement ps = home.prepareStatement(q)) {
                 ps.setString(1, startDate);
                 ps.setString(2, endDate);
@@ -147,79 +151,80 @@ public class SendRangeService {
         }
 
         final int total = rows.size();
-        final String token = loginExact(); // Bearer token
+        ensureLoggedIn(); // warm up token
 
-        // 2) For each row: guard against resend, then HTTP, then stamp
+        // 2) For each row: guard, HTTP with auth-retry, stamping, TR_TimeStamp update, error persistence
         for (Map<String,Object> row : rows) {
-            final String serStr = String.valueOf(row.get("Ser")).trim();   // NEW: moved up
+            final String serStr = String.valueOf(row.get("Ser")).trim();
             try {
-                // ---- NEW: guard for missing debit/credit accounts ----
+                // ---- Guard for missing debit/credit accounts ----
                 Object debitAcct  = row.get("DebitAccount1");
-                Object creditAcct = row.get("CreditAccount11");           // your SQL aliases it as CreditAccount11
+                Object creditAcct = row.get("CreditAccount11");      // alias from SQL
                 if (creditAcct == null) creditAcct = row.get("CreditAccount1");
 
                 if (isBlank(debitAcct) || isBlank(creditAcct)) {
                     String msg = "يرجى ملء حسابات المدين والدائن";
                     error = error.isEmpty() ? msg : (error + " | " + msg);
-                    // if you have the per-row map, keep this line; otherwise you can omit it
-                    putError(serStr, msg);
+                    putErrorPersist(serStr, msg);
                     appendToLog("ERROR: " + msg);
-                    System.out.println("RULE-HIT ser=" + serStr + " -> " + msg);
-
-
                     fail++; done++; System.out.println("PROGRESS " + done + "/" + total);
                     continue;
                 }
-// ---- END NEW ----
 
                 Map<String,Object> journal = JournalBuilder.buildJournalForApi(row);
                 if (journal == null) {
+                    putErrorPersist(serStr, "تعذر إنشاء القيد");
                     fail++; done++; System.out.println("PROGRESS " + done + "/" + total);
                     continue;
                 }
 
-
-                // Decide source table + compute Ser
+                // Decide source table
                 String table = "statement";
                 String src = String.valueOf(row.get("src"));
                 if ("Gl_Journal".equalsIgnoreCase(src)) table = "Gl_Journal";
+
                 // HARD STOP: if it's already in TimeStamp, skip sending
                 if (isAlreadyStamped(table, serStr)) {
-                    System.out.println("SKIP Ser=" + serStr + " already in TimeStamp");
+                    clearErrorPersist(serStr);
                     done++; System.out.println("PROGRESS " + done + "/" + total);
                     continue;
                 }
 
-                // --- HTTP send ---
+                // --- HTTP send with auth-refresh-and-retry ---
                 String payload = "[" + toJson(journal) + "]";
-                HttpRequest req = HttpRequest.newBuilder()
-                        .uri(URI.create(IMPORT_URL))
-                        .timeout(REQ_TIMEOUT)
-                        .header("accept", "application/json")
-                        .header("Content-Type", "application/json")
-                        .header("Authorization", "Bearer " + token)
-                        .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
-                        .build();
-
-                logRequest("IMPORT", IMPORT_URL, payload);
-                HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> resp = withAuthRetry(token -> sendImport(token, payload));
                 String body = (resp.body() == null ? "" : resp.body()).trim();
-                logResponse("IMPORT", resp.statusCode(), body);
 
                 boolean success = resp.statusCode()/100 == 2 && looksSuccessful(body);
                 if (!success) {
-                    String arabic = extractArabicFrom(body);
-                    if (!arabic.isEmpty()) {
-                        error = arabic;            // existing behavior
-                        putError(serStr, arabic);  // new: per-row
+                    // Only extract/display Arabic error if code != 0
+                    boolean isCodeZero = false;
+                    String lower = body.toLowerCase(Locale.ROOT);
+                    int i = lower.indexOf("\"code\"");
+                    if (i >= 0) {
+                        int colon = lower.indexOf(':', i);
+                        if (colon > 0) {
+                            StringBuilder num = new StringBuilder();
+                            for (int j = colon + 1; j < lower.length(); j++) {
+                                char ch = lower.charAt(j);
+                                if (Character.isWhitespace(ch)) continue;
+                                if (Character.isDigit(ch)) { num.append(ch); continue; }
+                                break;
+                            }
+                            if (num.length() > 0 && "0".contentEquals(num)) isCodeZero = true;
+                        }
                     }
-
+                    if (!isCodeZero) {
+                        String arabic = extractArabicFrom(body);
+                        if (!arabic.isEmpty()) { error = arabic; putErrorPersist(serStr, arabic); }
+                        else putErrorPersist(serStr, "فشل الإرسال");
+                    }
                     System.err.println("FAIL " + serStr + " " + resp.statusCode() + " " + body);
                     fail++; done++; System.out.println("PROGRESS " + done + "/" + total);
                     continue;
                 }
 
-                // --- Upsert into TimeStamp ---
+                // --- Upsert into TimeStamp.mdb ---
                 boolean stamped = false;
                 for (int attempt = 0; attempt < 2 && !stamped; attempt++) {
                     try (Connection tsConn = TimeStamp.getConnection()) {
@@ -242,23 +247,21 @@ public class SendRangeService {
                 }
 
                 if (stamped) {
+                    // Update home.mdb TR_TimeStamp so anti-resend stops picking this row
+                    updateHomeTRTimeStamp(table, serStr);
                     ok++;
-                    System.out.println("DONE Ser=" + serStr + " (logged in TimeStamp.mdb)");
+                    clearErrorPersist(serStr);
+                    System.out.println("DONE Ser=" + serStr + " (stamped + home TR_TimeStamp updated)");
                 } else {
                     fail++;
+                    putErrorPersist(serStr, "خطأ في التحديث");
                     System.err.println("FAIL " + serStr + " response ok, but stamping failed (TimeStamp.mdb)");
-                    error += (error.isEmpty() ? "" : " | ") + "خطأ في التحديث";
-                    putError(serStr, "خطأ في التحديث");
-                    appendToLog("FAIL " + serStr + " | خطأ في التحديث (stamping failed)");
-
                 }
 
             } catch (Exception ex) {
                 String arabic = extractArabicFrom(String.valueOf(ex.getMessage()));
-                if (!arabic.isEmpty()) {
-                    error = arabic;            // existing
-                    putError(serStr, arabic);  // new
-                }
+                if (!arabic.isEmpty()) putErrorPersist(serStr, arabic);
+                else putErrorPersist(serStr, "استثناء أثناء الإرسال");
 
                 logError("IMPORT", "Exception while sending Ser=" + row.get("Ser"), ex);
                 System.err.println("ERR " + row.get("Ser") + " " + ex.getMessage());
@@ -268,9 +271,8 @@ public class SendRangeService {
             done++;
             System.out.println("PROGRESS " + done + "/" + total);
         }
-        String ok_sent= "OK : " ;
-        String failed_tosend="Fail : ";
-        String summary = "{"+ ok_sent + ok + " ✓ " + failed_tosend + fail +" X "+ "}";
+
+        String summary = "{OK : " + ok + " ✓ Fail : " + fail + " X }";
         logToFile("SUMMARY", summary);
 
         System.out.println("BACKEND ERR MAP SIZE = " + LAST_ERRORS.size());
@@ -279,12 +281,79 @@ public class SendRangeService {
         return summary;
     }
 
+    // ----------------------- Auth helpers ---------------------------------------
+    /** Return a valid token; login if needed. */
+    private static String ensureLoggedIn() {
+        if (cachedToken != null) return cachedToken;
+        synchronized (AUTH_LOCK) {
+            if (cachedToken != null) return cachedToken;
+            cachedToken = loginExact();
+            return cachedToken;
+        }
+    }
+    private static void invalidateToken() {
+        synchronized (AUTH_LOCK) { cachedToken = null; }
+    }
+    /** Wrap a call that needs Authorization and retry once on 401/403. */
+    private static <T> T withAuthRetry(Function<String, T> call) {
+        String token = ensureLoggedIn();
+        try {
+            return call.apply(token);
+        } catch (HttpUnauthorizedException | HttpForbiddenException first) {
+            invalidateToken();
+            String newToken = ensureLoggedIn();
+            return call.apply(newToken);
+        }
+    }
+    // Tiny exceptions so we can detect 401/403 cleanly.
+    static class HttpUnauthorizedException extends RuntimeException { HttpUnauthorizedException(String m){super(m);} }
+    static class HttpForbiddenException     extends RuntimeException { HttpForbiddenException(String m){super(m);} }
 
-    // ----------------------- Helpers --------------------------------------------
+    /** Centralized HTTP call for Import; throws on 401/403, returns the response otherwise. */
+    private static HttpResponse<String> sendImport(String token, String payload) {
+        try {
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(IMPORT_URL))
+                    .timeout(Duration.ofSeconds(25)) // safer for uploads than 8s
+                    .header("accept", "application/json")
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + token)
+                    .header("year", HDR_YEAR)
+                    .header("activity", HDR_ACTIVITY)
+                    .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
+                    .build();
+
+            logRequest("IMPORT", IMPORT_URL, payload);
+            HttpResponse<String> resp = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
+            String body = (resp.body() == null ? "" : resp.body()).trim();
+            logResponse("IMPORT", resp.statusCode(), body);
+
+            int sc = resp.statusCode();
+            if (sc == 401) throw new HttpUnauthorizedException("401 from import");
+            if (sc == 403) throw new HttpForbiddenException("403 from import");
+            return resp;
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    // success ONLY when the response contains: "code": 0  (or "code":"0")
+    private static boolean looksSuccessful(String body) {
+        if (body == null) return false;
+        // Find: "code" : 0   or   "code" : "0"   (case-insensitive for "code")
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("(?i)\\\"code\\\"\\s*:\\s*(\\\"?)(-?\\d+)\\1")
+                .matcher(body);
+        if (m.find()) {
+            return "0".equals(m.group(2));
+        }
+        return false; // if there's no code field, it's not a success
+    }
+
+
+    // ----------------------- DB / utility helpers -------------------------------
     private static boolean isBlank(Object v) {
         return v == null || String.valueOf(v).trim().isEmpty();
     }
-
     private static void appendToLog(String message) {
         try (FileWriter fw = new FileWriter("log.txt", true);
              PrintWriter pw = new PrintWriter(fw)) {
@@ -294,11 +363,9 @@ public class SendRangeService {
         }
     }
 
-
     // Arabic extractor: returns all Arabic snippets joined by " | "
     private static String extractArabicFrom(String text) {
         if (text == null || text.isEmpty()) return "";
-        // Arabic Unicode blocks: 0600–06FF, 0750–077F, 08A0–08FF (core + supplement)
         final java.util.regex.Pattern ARABIC = java.util.regex.Pattern.compile("[\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF]+(?:[^\\.\\!\\?\\n\\r\\u061F]*[\\.\\!\\?\\u061F])?");
         java.util.regex.Matcher m = ARABIC.matcher(text);
         StringBuilder out = new StringBuilder();
@@ -308,7 +375,6 @@ public class SendRangeService {
         }
         return out.toString();
     }
-
 
     private static List<Map<String,Object>> resultSetToList(ResultSet rs) throws SQLException {
         List<Map<String,Object>> list = new ArrayList<>();
@@ -341,18 +407,15 @@ public class SendRangeService {
         }
     }
 
-
-
     private static final DateTimeFormatter TS_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); // 19 chars
 
-    /** Ensure [TimeStamp] exists with TEXT columns (compatible with your Long Text/Short Text). */
+    /** Ensure [TR_TimeStamp] exists with TEXT columns (compatible with your Long Text/Short Text). */
     private static void ensureTimeStampTable(Connection conn) throws SQLException {
         try (Statement s = conn.createStatement()) {
             s.execute("SELECT TOP 1 [Ser],[Table],[TimeStamp] FROM [TR_TimeStamp]");
         } catch (SQLException e) {
             try (Statement s2 = conn.createStatement()) {
-                // TEXT sizes chosen to be broadly compatible; Access will map appropriately.
                 s2.execute(
                         "CREATE TABLE [TR_TimeStamp] (" +
                                 "  [Ser] TEXT(255), " +
@@ -364,6 +427,57 @@ public class SendRangeService {
         }
     }
 
+    /** Overwrite if exists (Table,Ser), else insert a new row. */
+    private static boolean upsertTimeStamp(Connection conn, String ser, String tableName) throws SQLException {
+        final String ts = LocalDateTime.now().format(TS_FMT);
+
+        // 1) Try UPDATE first
+        int updated;
+        try (PreparedStatement ps = conn.prepareStatement(
+                "UPDATE [TR_TimeStamp] SET [TimeStamp]=? WHERE [Table]=? AND [Ser]=?")) {
+            ps.setString(1, ts);
+            ps.setString(2, tableName);
+            ps.setString(3, ser);
+            updated = ps.executeUpdate();
+        }
+        if (updated > 0) return true;
+
+        // 2) INSERT if not found
+        try (PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO [TR_TimeStamp] ([Ser],[Table],[TimeStamp]) VALUES (?,?,?)")) {
+            ps.setString(1, ser);
+            ps.setString(2, tableName);
+            ps.setString(3, ts);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            final String msg = String.valueOf(ex.getMessage()).toLowerCase(Locale.ROOT);
+            if ("23000".equals(ex.getSQLState()) || msg.contains("duplicate")) {
+                try (PreparedStatement ps2 = conn.prepareStatement(
+                        "UPDATE [TR_TimeStamp] SET [TimeStamp]=? WHERE [Table]=? AND [Ser]=?")) {
+                    ps2.setString(1, ts);
+                    ps2.setString(2, tableName);
+                    ps2.setString(3, ser);
+                    return ps2.executeUpdate() > 0;
+                }
+            }
+            logError("TimeStamp", "UPSERT insert failed", ex);
+            return false;
+        }
+    }
+
+    private static void updateHomeTRTimeStamp(String srcTable, String ser) {
+        final String sql = "UPDATE [" + srcTable + "] SET [TR_TimeStamp] = ? WHERE TRIM([Ser]) = ?";
+        try (Connection home = AccessConnection.getConnection();
+             PreparedStatement ps = home.prepareStatement(sql)) {
+            ps.setString(1, LocalDateTime.now().format(TS_FMT));
+            ps.setString(2, ser.trim());
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            logError("HOME_TR_TS", "Failed updating TR_TimeStamp for " + srcTable + "/" + ser, ex);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private static String toJson(Object v) {
         if (v == null) return "null";
@@ -390,7 +504,6 @@ public class SendRangeService {
         }
         return '"' + esc(String.valueOf(v)) + '"';
     }
-
     private static String esc(String s) {
         return s.replace("\\","\\\\").replace("\"","\\\"")
                 .replace("\b","\\b").replace("\f","\\f")
@@ -416,71 +529,8 @@ public class SendRangeService {
         }
         return null;
     }
-    /** Overwrite if exists (Table,Ser), else insert a new row. */
-    private static boolean upsertTimeStamp(Connection conn, String ser, String tableName) throws SQLException {
-        final String ts = LocalDateTime.now().format(TS_FMT);
 
-        // 1) Try UPDATE first
-        int updated;
-        try (PreparedStatement ps = conn.prepareStatement(
-                "UPDATE [TR_TimeStamp] SET [TimeStamp]=? WHERE [Table]=? AND [Ser]=?")) {
-            ps.setString(1, ts);
-            ps.setString(2, tableName);
-            ps.setString(3, ser);
-            updated = ps.executeUpdate();
-        }
-        if (updated > 0) return true;
-
-        // 2) INSERT if not found
-        try (PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO [TR_TimeStamp] ([Ser],[Table],[TimeStamp]) VALUES (?,?,?)")) {
-            ps.setString(1, ser);
-            ps.setString(2, tableName);
-            ps.setString(3, ts);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            // If there's a unique index and we hit a duplicate, UPDATE once more (lost a race)
-            final String msg = String.valueOf(ex.getMessage()).toLowerCase(Locale.ROOT);
-            if ("23000".equals(ex.getSQLState()) || msg.contains("duplicate")) {
-                try (PreparedStatement ps2 = conn.prepareStatement(
-                        "UPDATE [TR_TimeStamp] SET [TimeStamp]=? WHERE [Table]=? AND [Ser]=?")) {
-                    ps2.setString(1, ts);
-                    ps2.setString(2, tableName);
-                    ps2.setString(3, ser);
-                    return ps2.executeUpdate() > 0;
-                }
-            }
-            logError("TimeStamp", "UPSERT insert failed", ex);
-            return false;
-        }
-    }
-
-
-    private static boolean looksSuccessful(String body) {
-        if (body == null) return false;
-        String lower = body.toLowerCase(Locale.ROOT);
-
-        // 1) code == 0
-        int i = lower.indexOf("\"code\"");
-        if (i >= 0) {
-            int colon = lower.indexOf(':', i);
-            if (colon > 0) {
-                StringBuilder num = new StringBuilder();
-                for (int j = colon + 1; j < lower.length(); j++) {
-                    char ch = lower.charAt(j);
-                    if (Character.isWhitespace(ch)) continue;
-                    if (Character.isDigit(ch)) { num.append(ch); continue; }
-                    break;
-                }
-                if (num.length() > 0) return "0".contentEquals(num); // success only if 0
-            }
-        }
-
-        // 2) fall back: "errorNo":"0"
-        return lower.contains("\"errorno\"") && lower.contains("\"0\"");
-        // NOTE: intentionally do NOT check for the word "success" anywhere.
-    }
-
+    // ----------------------- Cleanup & anti-resend SQL ---------------------------
     /**
      * Remove rows from TimeStamp.mdb for which home.mdb has Done=TRUE.
      * If startDate/endDate are non-blank, only rows with [Date] BETWEEN startDate AND endDate are considered.
@@ -489,17 +539,16 @@ public class SendRangeService {
     public static String cleanupDoneStamps(String startDate, String endDate) {
         int scanned = 0, deleted = 0;
 
-        // --- 1) Build query (optionally date-filtered) over home.mdb ---
         boolean hasRange = startDate != null && !startDate.isBlank()
                 && endDate   != null && !endDate.isBlank();
 
         String sqlHome =
                 "SELECT [Ser], 'statement' AS TableName FROM [statement] " +
-                        "WHERE [TR_Done]=TRUE " +                               // ← space here
+                        "WHERE [TR_Done]=TRUE " +
                         (hasRange ? "AND [Date] BETWEEN ? AND ? " : "") +
                         "UNION ALL " +
                         "SELECT [Ser], 'Gl_Journal' AS TableName FROM [Gl_Journal] " +
-                        "WHERE [TR_Done]=TRUE " +                               // ← and here
+                        "WHERE [TR_Done]=TRUE " +
                         (hasRange ? "AND [Date] BETWEEN ? AND ? " : "");
 
         List<Map<String,Object>> keys = new ArrayList<>();
@@ -533,10 +582,9 @@ public class SendRangeService {
             return summary;
         }
 
-        // --- 2) Delete matching rows from TimeStamp.mdb in a batch ---
         try (Connection ts = TimeStamp.getConnection()) {
-            ts.setAutoCommit(true); // simple
-            ensureTimeStampTable(ts); // in case table is missing
+            ts.setAutoCommit(true);
+            ensureTimeStampTable(ts);
 
             try (PreparedStatement del = ts.prepareStatement(
                     "DELETE FROM [TR_TimeStamp] WHERE [Table]=? AND [Ser]=?")) {
@@ -550,7 +598,7 @@ public class SendRangeService {
                     del.addBatch();
                 }
                 int[] counts = del.executeBatch();
-                for (int c : counts) if (c > 0) deleted += c; // 0 if not found, 1 if deleted
+                for (int c : counts) if (c > 0) deleted += c;
             }
         } catch (Exception e) {
             logError("CLEANUP", "Failed deleting from TimeStamp.mdb", e);
@@ -562,8 +610,7 @@ public class SendRangeService {
         return summary;
     }
 
-    /** 3) Build anti-resend SQL using local __SentKeys (no cross-db IN) */
-    /** 3) Build anti-resend SQL using the new TR_ columns in home.mdb */
+    /** Anti-resend: uses TR_TimeStamp in home.mdb (null means not sent yet). */
     private static String buildAntiResendSql() {
         return
                 "SELECT s.[Ser], s.[Date], s.[Amount], s.[Descr1], s.[Room_no], s.[Rent_no], " +
@@ -576,19 +623,16 @@ public class SendRangeService {
                         "       'statement' AS src " +
                         "FROM [statement] s " +
                         "WHERE s.[Date] BETWEEN ? AND ? AND s.[TR_TimeStamp] IS NULL " +
-        "UNION ALL " +
-                "SELECT g.[Ser], g.[Date], g.[Amount], g.[Descr1], g.[Room_no], g.[Rent_no], " +
-                "       g.[DebitAccount1], g.[CreditAccount1] AS CreditAccount11, g.[DebitAccount2], g.[CreditAccount2], " +
-                "       g.[DrcostCenterCode] AS DrcostCenterCode, g.[CrcostCenterCode] AS CrcostCenterCode, " +
-                "       g.[CreditAmount1] AS Credit_Amount1, g.[CreditAmount2] AS Credit_Amount2, " +
-                "       g.[DebitAmount1]  AS Debit_Amount1,  g.[DebitAmount2]  AS Debit_Amount2, " +
-                "       g.[Cr_dtl_ac1] AS Cr_dtl_ac1, g.[Cr_dtl_ac2] AS Cr_dtl_ac2, " +
-                "       g.[Dr_dtl_ac1]  AS Dr_dtl_ac1,  g.[Dr_dtl_ac2]  AS Dr_dtl_ac2, " +
-                "       'Gl_Journal' AS src " +
-                "FROM [Gl_Journal] g " +
-                "WHERE g.[Date] BETWEEN ? AND ? AND g.[TR_TimeStamp] IS NULL";
+                        "UNION ALL " +
+                        "SELECT g.[Ser], g.[Date], g.[Amount], g.[Descr1], g.[Room_no], g.[Rent_no], " +
+                        "       g.[DebitAccount1], g.[CreditAccount1] AS CreditAccount11, g.[DebitAccount2], g.[CreditAccount2], " +
+                        "       g.[DrcostCenterCode] AS DrcostCenterCode, g.[CrcostCenterCode] AS CrcostCenterCode, " +
+                        "       g.[CreditAmount1] AS Credit_Amount1, g.[CreditAmount2] AS Credit_Amount2, " +
+                        "       g.[DebitAmount1]  AS Debit_Amount1,  g.[DebitAmount2]  AS Debit_Amount2, " +
+                        "       g.[Cr_dtl_ac1] AS Cr_dtl_ac1, g.[Cr_dtl_ac2] AS Cr_dtl_ac2, " +
+                        "       g.[Dr_dtl_ac1]  AS Dr_dtl_ac1,  g.[Dr_dtl_ac2]  AS Dr_dtl_ac2, " +
+                        "       'Gl_Journal' AS src " +
+                        "FROM [Gl_Journal] g " +
+                        "WHERE g.[Date] BETWEEN ? AND ? AND g.[TR_TimeStamp] IS NULL";
     }
-
-
-
 }

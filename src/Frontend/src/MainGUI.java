@@ -12,6 +12,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import services.FetchRowsRange;
 import services.SendRangeService;
+import db.ErrorLog;
 import Language.I18n;
 import java.io.File;
 import java.sql.Connection;
@@ -78,6 +79,18 @@ public class MainGUI extends Application {
         // ---------- Table ----------
         table = TableFactory.createRecordsTable();
         table.setPlaceholder(new Label("No content in table"));
+        // right after: table = TableFactory.createRecordsTable();
+
+        table.setRowFactory(tv -> new TableRow<>() {
+            @Override protected void updateItem(Record r, boolean empty) {
+                super.updateItem(r, empty);
+                getStyleClass().remove("row-error");
+                if (!empty && r != null && r.getError() != null && !r.getError().isBlank()) {
+                    if (!getStyleClass().contains("row-error")) getStyleClass().add("row-error");
+                }
+            }
+        });
+
 
         // ---------- Status row (bottom) ----------
         statusLabel = new Label();
@@ -112,12 +125,14 @@ public class MainGUI extends Application {
 
         Button changeDbBtn = new Button();
         Button changeTimestampDbBtn = new Button(); // NEW
+        Button changeErrorDbBtn = new Button();
 
         adminPanel = AdminPanelFactory.create(
                 endpointField, setEndpointBtn,
                 loginEndpointField, setLoginEndpointBtn,
                 changeDbBtn,
                 changeTimestampDbBtn, // NEW
+                changeErrorDbBtn,
                 () -> {
                     adminPanel.setVisible(false);
                     adminPanel.setManaged(false);
@@ -148,6 +163,7 @@ public class MainGUI extends Application {
         browseBtn.setOnAction(e -> doBrowse(fromDate, toDate, modeBox, browseBtn));
         changeDbBtn.setOnAction(e -> onChangeDb(primaryStage, changeDbBtn));
         changeTimestampDbBtn.setOnAction(e -> onChangeTimestampDb(primaryStage, changeTimestampDbBtn)); // NEW
+        changeErrorDbBtn.setOnAction(e -> onChangeErrorDb(primaryStage, changeErrorDbBtn));
 
         setEndpointBtn.setOnAction(e -> {
             SendRangeService.setImportUrl(endpointField.getText().trim());
@@ -218,19 +234,39 @@ public class MainGUI extends Application {
                         str(row.get("CrcostCenterCode")),
                         str(row.get("DrcostCenterCode")),
                         String.valueOf(row.get("Ser")),
-                        ""
+                        "" // start with no error; we'll overlay below
                 )).toList();
             }
         };
 
         task.setOnSucceeded(ev -> {
+            // 1) Set items
             table.getItems().setAll(task.getValue());
+
+            // 2) Overlay persisted errors on browse (and clear rows with none)
+            Map<String, String> errs = ErrorLog.getAllErrors();
+            int firstErrorIndex = -1;
+            for (int i = 0; i < table.getItems().size(); i++) {
+                Record r = table.getItems().get(i);
+                String e = (errs == null) ? null : errs.get(r.getSer());
+                if (e != null && !e.isBlank()) {
+                    r.setError(e);
+                    if (firstErrorIndex == -1) firstErrorIndex = i;
+                } else {
+                    r.setError("");
+                }
+            }
+            table.refresh();
+            if (firstErrorIndex >= 0) {
+                table.scrollTo(firstErrorIndex);
+                table.getSelectionModel().select(firstErrorIndex);
+            }
+
+            // 3) Wrap up
             showToast(I18n.t("toast.loaded") + task.getValue().size());
             loader.setVisible(false);
-            browseBtn.setDisable(false);   // <-- browseBtn here
+            browseBtn.setDisable(false);
         });
-
-
 
         task.setOnFailed(ev -> {
             statusLabel.setText("Error: " + task.getException().getMessage());
@@ -243,6 +279,7 @@ public class MainGUI extends Application {
         bt.setDaemon(true);
         bt.start();
     }
+
 
     private void onChangeDb(Stage owner, Button changeDbBtn) {
         loader.setVisible(true);
@@ -257,6 +294,43 @@ public class MainGUI extends Application {
         }
         loader.setVisible(false);
         changeDbBtn.setDisable(false);
+    }
+
+    private void onChangeErrorDb(Stage owner, Button btn) {
+        loader.setVisible(true);
+        btn.setDisable(true);
+
+        try {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Select Error Log Database (.mdb/.accdb)");
+            fc.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("Access DB Files", "*.mdb", "*.accdb")
+            );
+
+            String current = ErrorLog.getPath();
+            if (current != null && !current.isBlank()) {
+                File currentFile = new File(current);
+                File dir = currentFile.isDirectory() ? currentFile : currentFile.getParentFile();
+                if (dir != null && dir.exists()) {
+                    fc.setInitialDirectory(dir);
+                }
+            }
+
+            File selected = fc.showOpenDialog(owner);
+            if (selected != null) {
+                try {
+                    ErrorLog.setPath(selected.getAbsolutePath());
+                    showToast("Error log DB updated: " + selected.getName());
+                } catch (IllegalArgumentException ex) {
+                    new Alert(Alert.AlertType.ERROR, ex.getMessage(), ButtonType.OK).showAndWait();
+                } catch (Exception ex) {
+                    new Alert(Alert.AlertType.ERROR, "Failed to update error log DB: " + ex.getMessage(), ButtonType.OK).showAndWait();
+                }
+            }
+        } finally {
+            loader.setVisible(false);
+            btn.setDisable(false);
+        }
     }
 
     private void onChangeTimestampDb(Stage owner, Button btn) {
@@ -305,7 +379,7 @@ public class MainGUI extends Application {
             showToast("Send result: " + task.getValue());
 
             Platform.runLater(() -> {
-                Map<String,String> errs = SendRangeService.getLastErrorsSnapshot();
+                Map<String, String> errs = ErrorLog.getAllErrors();
                 System.out.println("GUI ERR MAP SIZE = " + (errs == null ? -1 : errs.size()));
                 if (errs != null) errs.forEach((k,v) -> System.out.println("ERR-GUI " + k + " -> " + v));
 
@@ -316,6 +390,7 @@ public class MainGUI extends Application {
                 }
 
                 if (table.getScene() != null) table.refresh();
+                ErrorLog.clearAllErrors();
                 loader.setVisible(false);
                 sendBtn.setDisable(false);
             });

@@ -14,6 +14,7 @@ public final class AdminPanelFactory {
             Button setLoginEndpointBtn,
             Button changeDbBtn,
             Button changeTimestampDbBtn,
+            Button changeErrorDbBtn,
             Runnable onDone
     ) {
         // Bind texts
@@ -21,6 +22,7 @@ public final class AdminPanelFactory {
         I18n.bind(setLoginEndpointBtn, "setLoginEndpoint");
         I18n.bind(changeDbBtn,         "changeDb");
         I18n.bind(changeTimestampDbBtn,"Change_Timestamp_DB");
+        I18n.bind(changeErrorDbBtn,    "changeErrorDb");
         // If you don't have an i18n key yet, keep this line:
         // Or (once you add a key) use:
         // I18n.bind(changeTimestampDbBtn, "changeTimestampDb");
@@ -36,23 +38,25 @@ public final class AdminPanelFactory {
         });
         endpointsRow.setAlignment(Pos.CENTER_LEFT);
 
-        HBox dbRow   = new HBox(10, changeDbBtn);
+        HBox dbRow       = new HBox(10, changeDbBtn);
         dbRow.setAlignment(Pos.CENTER_LEFT);
 
-        // NEW: define the timestamp DB row
-        HBox tsDbRow = new HBox(10, changeTimestampDbBtn);
+        HBox tsDbRow     = new HBox(10, changeTimestampDbBtn);
         tsDbRow.setAlignment(Pos.CENTER_LEFT);
+
+        HBox errorDbRow  = new HBox(10, changeErrorDbBtn);
+        errorDbRow.setAlignment(Pos.CENTER_LEFT);
 
         Button doneBtn = new Button(I18n.t("done"));
         I18n.onChange(l -> doneBtn.setText(I18n.t("done")));
         doneBtn.setOnAction(e -> onDone.run());
 
-        // Put tsDbRow in the VBox after dbRow (order is up to you)
         VBox adminPanel = new VBox(10,
                 new Separator(),
                 endpointsRow,
                 dbRow,
-                tsDbRow,         // <-- now defined
+                tsDbRow,
+                errorDbRow,
                 doneBtn,
                 new Separator()
         );

@@ -37,6 +37,7 @@ public final class I18n {
         put("changeDb", "Change Home Database Location");
         put("done", "Done");
         put("Change_Timestamp_DB", "Change Timestamp Database Location");
+        put("changeErrorDb", "Change Error Log Database Location");
 
         put("mode.sent", "sent");
         put("mode.unsent", "unsent");
@@ -87,6 +88,7 @@ public final class I18n {
         put("changeDb", "تغيير موقع قاعدة البيانات");
         put("done", "تم");
         put("Change_Timestamp_DB", "تغيير موقع قاعدة البيانات طابع زمني");
+        put("changeErrorDb", "Change Error Log Database Location");
 
         put("mode.sent", "مرسل");
         put("mode.unsent", "غير مرسل");
