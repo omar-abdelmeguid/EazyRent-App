@@ -122,7 +122,7 @@ namespace EazyRentRevamp
                     StringKey.FoundErrors => "Found {0} errors",
                     StringKey.SearchErrorsFailed => "Search errors failed",
                     StringKey.ConfirmSendTitle => "Confirm Send",
-                    StringKey.ConfirmSendBody => "the select data?",
+                    StringKey.ConfirmSendBody => "Are you sure want to send the select data?",
                     StringKey.SendingRecords => "Sending records...",
                     StringKey.SendingRecordsShort => "Sending records",
                     StringKey.SendCompleted => "Send completed",
