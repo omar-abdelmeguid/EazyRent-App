@@ -1,6 +1,12 @@
 {
-  "DatabasePath": "",
+  "DatabasePath": "C:\\Users\\omara\\OneDrive\\Desktop\\home_omar\\home_omar.mdb",
+  "ErrorDbPath": "C:\\Users\\omara\\OneDrive\\Desktop\\home_omar\\error_db.accdb",
+  "Language": 1,
+  "ImportUrl": "http://localhost:8081/api/GL/ImportJournal",
+  "LoginUrl": "http://localhost:8081/api/Auth/login",
   "Endpoint": "http://localhost:5000/import",
-  "LastUsedDatabase": null,
-  "RecentDatabases": []
+  "LastUsedDatabase": "C:\\Users\\omara\\OneDrive\\Desktop\\home_omar\\home_omar.mdb",
+  "RecentDatabases": [
+    "C:\\Users\\omara\\OneDrive\\Desktop\\home_omar\\home_omar.mdb"
+  ]
 }

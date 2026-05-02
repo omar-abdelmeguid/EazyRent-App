@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -28,6 +29,14 @@ namespace EazyRentRevamp
         private Label? _modeLabel;
         private Button? _homeSideBtn;
         private Button? _errorsSideBtn;
+        private Button? _settingsSideBtn;
+        private Label? _logoLabel;
+        private Label? _logoSubLabel;
+        private Label? _versionLabel;
+        private ComboBox? _langBox;
+        private Label? _fromLabel;
+        private Label? _toLabel;
+        private bool _applyingLanguage;
         private string _page = "home"; // home | errors
         private TextBox? _errorSearchBox;
         private Button? _errorSearchBtn;
@@ -57,6 +66,7 @@ namespace EazyRentRevamp
         public MainForm()
         {
             _backend = new BackendService();
+            L.Set(_backend.Language);
             BuildUI();
         }
 
@@ -75,7 +85,7 @@ namespace EazyRentRevamp
         private string _marqueeText = "";
         private void BuildUI()
         {
-            this.Text            = "EazyRent Plus";
+            this.Text            = L.Str(StringKey.AppTitle);
             this.StartPosition   = FormStartPosition.CenterScreen;
             this.WindowState     = FormWindowState.Maximized;
             this.MinimumSize     = new Size(1100, 650);
@@ -93,17 +103,17 @@ namespace EazyRentRevamp
             };
             _sidebarPanel.Paint += SidebarPaint;
 
-            var logoLabel = new Label
+            _logoLabel = new Label
             {
-                Text      = "EazyRent Plus",
+                Text      = L.Str(StringKey.AppTitle),
                 ForeColor = Color.White,
                 Font      = new Font("Segoe UI", 13f, FontStyle.Bold),
                 Bounds    = new Rectangle(0, 0, 220, 64),
                 TextAlign = ContentAlignment.MiddleCenter
             };
-            var logoSub = new Label
+            _logoSubLabel = new Label
             {
-                Text      = "Property Management",
+                Text      = L.Str(StringKey.SidebarSubtitle),
                 ForeColor = ColorSidebarText,
                 Font      = FontSubtitle,
                 Bounds    = new Rectangle(0, 58, 220, 22),
@@ -111,20 +121,33 @@ namespace EazyRentRevamp
             };
 
             // FIX 2: sidebar "Home" instead of "Journal Import"
-            _homeSideBtn = CreateSidebarButton("  Home", true, 110);
-            _errorsSideBtn = CreateSidebarButton("  Errors", false, 154);
-            var settingsSideBtn = CreateSidebarButton("  Settings", false, 198);
-            settingsSideBtn.Click += (s, e) => OnSettings();
+            _homeSideBtn = CreateSidebarButton(L.Str(StringKey.SidebarHome), true, 110);
+            _errorsSideBtn = CreateSidebarButton(L.Str(StringKey.SidebarErrors), false, 154);
+            _settingsSideBtn = CreateSidebarButton(L.Str(StringKey.SidebarSettings), false, 198);
+            _settingsSideBtn.Click += (s, e) => OnSettings();
             _homeSideBtn.Click += async (s, e) => await NavigateTo("home");
             _errorsSideBtn.Click += async (s, e) => await NavigateTo("errors");
 
             _sidebarPanel.Controls.Add(_homeSideBtn);
             _sidebarPanel.Controls.Add(_errorsSideBtn);
-            _sidebarPanel.Controls.Add(settingsSideBtn);
+            _sidebarPanel.Controls.Add(_settingsSideBtn);
 
-            var versionLabel = new Label
+            // Language selector (sidebar)
+            var languageHost = new Panel
             {
-                Text      = "v2.0  •  2026",
+                Dock = DockStyle.Bottom,
+                Height = 36 + 30,
+                Padding = new Padding(20, 0, 20, 30)
+            };
+            _langBox = MakeLanguageCombo();
+            _langBox.Dock = DockStyle.Bottom;
+            _langBox.Height = 36;
+            languageHost.Controls.Add(_langBox);
+            _sidebarPanel.Controls.Add(languageHost);
+
+            _versionLabel = new Label
+            {
+                Text      = L.Str(StringKey.VersionLabel),
                 ForeColor = Color.FromArgb(71, 85, 105),
                 Font      = new Font("Segoe UI", 8f),
                 Dock      = DockStyle.Bottom,
@@ -132,9 +155,9 @@ namespace EazyRentRevamp
                 TextAlign = ContentAlignment.MiddleCenter
             };
 
-            _sidebarPanel.Controls.Add(logoLabel);
-            _sidebarPanel.Controls.Add(logoSub);
-            _sidebarPanel.Controls.Add(versionLabel);
+            _sidebarPanel.Controls.Add(_logoLabel);
+            _sidebarPanel.Controls.Add(_logoSubLabel);
+            _sidebarPanel.Controls.Add(_versionLabel);
 
             // ── Main area ──────────────────────────────────────────────────────
             var mainArea = new Panel { Dock = DockStyle.Fill, BackColor = ColorBg };
@@ -273,14 +296,16 @@ namespace EazyRentRevamp
                 Padding       = new Padding(16, 10, 16, 0)
             };
 
-            filterFlow.Controls.Add(MakeFilterLabel("From"));
+            _fromLabel = MakeFilterLabel(L.Str(StringKey.From));
+            filterFlow.Controls.Add(_fromLabel);
             _fromPicker = MakeDatePicker(DateTime.Today.AddDays(-7));
             filterFlow.Controls.Add(_fromPicker);
-            filterFlow.Controls.Add(MakeFilterLabel("To"));
+            _toLabel = MakeFilterLabel(L.Str(StringKey.To));
+            filterFlow.Controls.Add(_toLabel);
             _toPicker = MakeDatePicker(DateTime.Today);
             filterFlow.Controls.Add(_toPicker);
 
-            _modeLabel = MakeFilterLabel("Status");
+            _modeLabel = MakeFilterLabel(L.Str(StringKey.Status));
             filterFlow.Controls.Add(_modeLabel);
             _modeBox = MakeModeCombo();
             filterFlow.Controls.Add(_modeBox);
@@ -294,8 +319,8 @@ namespace EazyRentRevamp
             });
 
             // Actions (page-dependent)
-            _fetchBtn = CreateActionButton("Fetch",      ColorAccent, Color.White, false);
-            _sendBtn  = CreateActionButton("Send Range", ColorAccent, Color.White, true);
+            _fetchBtn = CreateActionButton(L.Str(StringKey.Fetch),      ColorAccent, Color.White, false);
+            _sendBtn  = CreateActionButton(L.Str(StringKey.SendRange), ColorAccent, Color.White, true);
             // Settings is available from the sidebar; keep the header clean.
 
             _fetchBtn.Click += async (s, e) => await OnFetchUnified();
@@ -320,7 +345,7 @@ namespace EazyRentRevamp
             _errorSearchBtn.Click += async (s, e) => await OnErrorSearch();
             _errorSearchRow.Controls.Add(_errorSearchBtn);
             _errorSearchRow.Controls.Add(_errorSearchBox);
-            SetCueBanner(_errorSearchBox, "search with serial number or Room Number");
+            SetCueBanner(_errorSearchBox, L.Str(StringKey.SearchCue));
 
             filterLayout.Controls.Add(_errorSearchRow, 0, 1);
             filterCard.Controls.Add(filterLayout);
@@ -335,11 +360,11 @@ namespace EazyRentRevamp
             };
             _countLabel = new Label
             {
-                Text      = "No records loaded. click View to begin",
+                Text      = L.Str(StringKey.NoRecordsLoaded),
                 ForeColor = ColorTextMuted,
                 Font      = FontLabel,
                 Dock      = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft
+                TextAlign = L.AlignNearMiddle()
             };
             _sendResultLabel = new Label
             {
@@ -347,7 +372,7 @@ namespace EazyRentRevamp
                 ForeColor = ColorTextMuted,
                 Font      = FontLabel,
                 Dock      = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleRight
+                TextAlign = L.AlignFarMiddle()
             };
 
             var statsLayout = new TableLayoutPanel
@@ -412,11 +437,11 @@ namespace EazyRentRevamp
             };
             _statusLabel = new Label
             {
-                Text      = "Ready",
+                Text      = L.Str(StringKey.Ready),
                 ForeColor = ColorSidebarText,
                 Font      = new Font("Segoe UI", 8f),
                 Dock      = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft,
+                TextAlign = L.AlignNearMiddle(),
                 Padding   = new Padding(12, 0, 0, 0)
             };
             _statusBar.Controls.Add(_statusLabel);
@@ -437,6 +462,7 @@ namespace EazyRentRevamp
             _loadingOverlay.BringToFront();
 
             ApplyPageUi();
+            ApplyLanguageUi();
         }
 
         // ── Paint helpers ──────────────────────────────────────────────────────
@@ -527,7 +553,7 @@ namespace EazyRentRevamp
             AutoSize  = false,
             Width     = 58,
             Height    = 36,
-            TextAlign = ContentAlignment.MiddleRight,
+            TextAlign = L.IsRtl ? ContentAlignment.MiddleLeft : ContentAlignment.MiddleRight,
             Margin    = new Padding(8, 0, 4, 0)
         };
 
@@ -541,6 +567,14 @@ namespace EazyRentRevamp
             Margin  = new Padding(0, 0, 8, 0)
         };
 
+        private sealed class ModeItem
+        {
+            public ModeItem(string value) { Value = value; }
+            public string Value { get; }
+            public override string ToString()
+                => Value == "sent" ? L.Str(StringKey.ModeSent) : L.Str(StringKey.ModeUnsent);
+        }
+
         private ComboBox MakeModeCombo()
         {
             var cb = new ComboBox
@@ -551,8 +585,60 @@ namespace EazyRentRevamp
                 Font          = FontLabel,
                 Margin        = new Padding(0, 0, 8, 0)
             };
-            cb.Items.AddRange(new string[] { "unsent", "sent" });
+            cb.Items.AddRange(new object[] { new ModeItem("unsent"), new ModeItem("sent") });
             cb.SelectedIndex = 0;
+            return cb;
+        }
+
+        private sealed class LanguageItem
+        {
+            public LanguageItem(AppLanguage language) { Language = language; }
+            public AppLanguage Language { get; }
+            public override string ToString() => L.LanguageName(Language);
+        }
+
+        private ComboBox MakeLanguageCombo()
+        {
+            var cb = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Width = 120,
+                Height = 36,
+                Font = FontLabel,
+                Margin = new Padding(0, 0, 8, 0),
+                BackColor = ColorSidebar,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                DrawMode = DrawMode.OwnerDrawFixed,
+                ItemHeight = 24
+            };
+
+            cb.Items.AddRange(new object[] { new LanguageItem(AppLanguage.English), new LanguageItem(AppLanguage.Arabic) });
+            cb.SelectedItem = cb.Items.Cast<object>().FirstOrDefault(i => i is LanguageItem li && li.Language == L.Current);
+
+            cb.DrawItem += (s, e) =>
+            {
+                e.DrawBackground();
+                if (e.Index < 0) return;
+
+                var itemText = cb.Items[e.Index]?.ToString() ?? string.Empty;
+                var isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+                using var bg = new SolidBrush(isSelected ? ColorAccent : ColorSidebar);
+                using var fg = new SolidBrush(isSelected ? Color.White : ColorSidebarText);
+                e.Graphics.FillRectangle(bg, e.Bounds);
+                e.Graphics.DrawString(itemText, cb.Font, fg, e.Bounds.Left + 6, e.Bounds.Top + 3);
+                e.DrawFocusRectangle();
+            };
+
+            cb.SelectedIndexChanged += (s, e) =>
+            {
+                if (_applyingLanguage) return;
+                if (cb.SelectedItem is not LanguageItem li) return;
+                _backend.SetLanguage(li.Language);
+                L.Set(li.Language);
+                ApplyLanguageUi();
+            };
+
             return cb;
         }
 
@@ -603,7 +689,7 @@ namespace EazyRentRevamp
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, string lParam);
 
-        private static void StyleDataGrid(DataGridView grid)
+        private void StyleDataGrid(DataGridView grid)
         {
             grid.DefaultCellStyle = new DataGridViewCellStyle
             {
@@ -612,7 +698,8 @@ namespace EazyRentRevamp
                 SelectionBackColor= Color.FromArgb(238, 242, 255),
                 SelectionForeColor= Color.FromArgb(30, 41, 59),
                 Font              = new Font("Segoe UI", 8.5f),
-                Padding           = new Padding(6, 4, 6, 4)
+                Padding           = new Padding(6, 4, 6, 4),
+                Alignment         = L.IsRtl ? DataGridViewContentAlignment.MiddleRight : DataGridViewContentAlignment.MiddleLeft
             };
             grid.AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle
             {
@@ -621,7 +708,8 @@ namespace EazyRentRevamp
                 SelectionBackColor = Color.FromArgb(238, 242, 255),
                 SelectionForeColor = Color.FromArgb(30, 41, 59),
                 Font               = new Font("Segoe UI", 8.5f),
-                Padding            = new Padding(6, 4, 6, 4)
+                Padding            = new Padding(6, 4, 6, 4),
+                Alignment          = L.IsRtl ? DataGridViewContentAlignment.MiddleRight : DataGridViewContentAlignment.MiddleLeft
             };
             grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
             {
@@ -629,14 +717,14 @@ namespace EazyRentRevamp
                 ForeColor = Color.FromArgb(71, 85, 105),
                 Font      = new Font("Segoe UI", 8.5f, FontStyle.Bold),
                 Padding   = new Padding(6, 6, 6, 6),
-                Alignment = DataGridViewContentAlignment.MiddleLeft
+                Alignment = L.IsRtl ? DataGridViewContentAlignment.MiddleRight : DataGridViewContentAlignment.MiddleLeft
             };
             grid.ColumnHeadersHeight       = 38;
             grid.RowTemplate.Height        = 34;
             grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
         }
 
-        private static void ConfigureGridColumns(DataGridView grid)
+        private void ConfigureGridColumns(DataGridView grid)
         {
             grid.Columns.Clear();
             void Add(string name, string header, string prop, int w = 110)
@@ -650,19 +738,33 @@ namespace EazyRentRevamp
                     Resizable        = DataGridViewTriState.True
                 });
 
-            Add("Room_no",         "Room",            nameof(Record.RoomNo),         70);
-            Add("Descr1",          "Description",     nameof(Record.Descr1),        180);
-            Add("Rent_no",         "Rent",          nameof(Record.RentNo),         80);
-            Add("Date",            "Date",            nameof(Record.Date),           100);
-            Add("Amount",          "Amount",          nameof(Record.Amount),          90);
-            Add("Type",            "Transaction Type",            nameof(Record.Type),            90);
-            Add("DebitAccount1",   "Debit Account 1",   nameof(Record.DebitAccount1),  150);
-            Add("DebitAccount2",   "Debit Account 2",   nameof(Record.DebitAccount2),  150);
-            Add("CreditAccount1",  "Credit Account 1",  nameof(Record.CreditAccount1), 150);
-            Add("CreditAccount2",  "Credit Account 2",  nameof(Record.CreditAccount2), 150);
-            Add("DrcostCenterCode","Dr Cost Center",    nameof(Record.DrCostCenterCode),150);
-            Add("Crcostcentercode","Cr Cost Center",    nameof(Record.CrCostCenterCode),150);
-            Add("Ser",             "Serial",         nameof(Record.Ser),             90);
+            var room = L.IsRtl ? "الغرفة" : "Room";
+            var desc = L.IsRtl ? "الوصف" : "Description";
+            var rent = L.IsRtl ? "الإيجار" : "Rent";
+            var date = L.IsRtl ? "التاريخ" : "Date";
+            var amount = L.IsRtl ? "المبلغ" : "Amount";
+            var type = L.IsRtl ? "نوع العملية" : "Transaction Type";
+            var dr1 = L.IsRtl ? "حساب مدين 1" : "Debit Account 1";
+            var dr2 = L.IsRtl ? "حساب مدين 2" : "Debit Account 2";
+            var cr1 = L.IsRtl ? "حساب دائن 1" : "Credit Account 1";
+            var cr2 = L.IsRtl ? "حساب دائن 2" : "Credit Account 2";
+            var drcc = L.IsRtl ? "مركز تكلفة مدين" : "Dr Cost Center";
+            var crcc = L.IsRtl ? "مركز تكلفة دائن" : "Cr Cost Center";
+            var serial = L.IsRtl ? "مسلسل" : "Serial";
+
+            Add("Room_no",         room,            nameof(Record.RoomNo),         70);
+            Add("Descr1",          desc,            nameof(Record.Descr1),        180);
+            Add("Rent_no",         rent,            nameof(Record.RentNo),         80);
+            Add("Date",            date,            nameof(Record.Date),           100);
+            Add("Amount",          amount,          nameof(Record.Amount),          90);
+            Add("Type",            type,            nameof(Record.Type),            110);
+            Add("DebitAccount1",   dr1,             nameof(Record.DebitAccount1),  150);
+            Add("DebitAccount2",   dr2,             nameof(Record.DebitAccount2),  150);
+            Add("CreditAccount1",  cr1,             nameof(Record.CreditAccount1), 150);
+            Add("CreditAccount2",  cr2,             nameof(Record.CreditAccount2), 150);
+            Add("DrcostCenterCode",drcc,            nameof(Record.DrCostCenterCode),150);
+            Add("Crcostcentercode",crcc,            nameof(Record.CrCostCenterCode),150);
+            Add("Ser",             serial,          nameof(Record.Ser),             90);
 
             grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
         }
@@ -681,7 +783,7 @@ namespace EazyRentRevamp
             ConfigureErrorGridColumns(_dataGrid);
         }
 
-        private static void ConfigureErrorGridColumns(DataGridView grid)
+        private void ConfigureErrorGridColumns(DataGridView grid)
         {
             grid.Columns.Clear();
             void Add(string name, string header, string prop, int w = 110)
@@ -695,23 +797,106 @@ namespace EazyRentRevamp
                     Resizable        = DataGridViewTriState.True
                 });
 
-            Add("Room_no",  "Room",      nameof(ErrorRecord.RoomNo), 70);
-            Add("Descr1",   "Description", nameof(ErrorRecord.Descr1), 180);
-            Add("Rent_no",  "Rent #",    nameof(ErrorRecord.RentNo), 80);
-            Add("Date_OF_DB", "Date",    nameof(ErrorRecord.DateOfDb), 120);
-            Add("Amount",   "Amount",    nameof(ErrorRecord.Amount), 90);
-            Add("Type",     "Type",      nameof(ErrorRecord.Type), 70);
-            Add("DebitAccount1",  "Debit Acct 1", nameof(ErrorRecord.DebitAccount1), 110);
-            Add("DebitAccount2",  "Debit Acct 2", nameof(ErrorRecord.DebitAccount2), 110);
-            Add("CreditAccount1", "Credit Acct 1", nameof(ErrorRecord.CreditAccount1), 110);
-            Add("CreditAccount2", "Credit Acct 2", nameof(ErrorRecord.CreditAccount2), 110);
-            Add("DrcostCenter",   "Dr Cost Ctr", nameof(ErrorRecord.DrCostCenter), 100);
-            Add("CrcostCenter",   "Cr Cost Ctr", nameof(ErrorRecord.CrCostCenter), 100);
-            Add("Ser",      "Serial",    nameof(ErrorRecord.Ser), 70);
-            Add("ERORR",    "Error",     nameof(ErrorRecord.Error), 280);
-            Add("failed_requests_timestamp", "Failed At", nameof(ErrorRecord.FailedRequestsTimestamp), 140);
+            var room = L.IsRtl ? "الغرفة" : "Room";
+            var desc = L.IsRtl ? "الوصف" : "Description";
+            var rent = L.IsRtl ? "الإيجار" : "Rent Number";
+            var date = L.IsRtl ? "التاريخ" : "Date";
+            var amount = L.IsRtl ? "المبلغ" : "Amount";
+            var type = L.IsRtl ? "النوع" : "Type";
+            var dr1 = L.IsRtl ? "مدين 1" : "Debit Account 1";
+            var dr2 = L.IsRtl ? "مدين 2" : "Debit Account 2";
+            var cr1 = L.IsRtl ? "دائن 1" : "Credit Account 1";
+            var cr2 = L.IsRtl ? "دائن 2" : "Credit Account 2";
+            var drcc = L.IsRtl ? "مركز تكلفة مدين" : "Dr Cost Center";
+            var crcc = L.IsRtl ? "مركز تكلفة دائن" : "Cr Cost Center";
+            var serial = L.IsRtl ? "مسلسل" : "Serial";
+            var err = L.IsRtl ? "الخطأ" : "Error";
+            var failedAt = L.IsRtl ? "وقت الفشل" : "Failed At";
+
+            Add("Room_no",  room,      nameof(ErrorRecord.RoomNo), 70);
+            Add("Descr1",   desc,      nameof(ErrorRecord.Descr1), 180);
+            Add("Rent_no",  rent,      nameof(ErrorRecord.RentNo), 80);
+            Add("Date_OF_DB", date,    nameof(ErrorRecord.DateOfDb), 120);
+            Add("Amount",   amount,    nameof(ErrorRecord.Amount), 90);
+            Add("Type",     type,      nameof(ErrorRecord.Type), 70);
+            Add("DebitAccount1",  dr1, nameof(ErrorRecord.DebitAccount1), 110);
+            Add("DebitAccount2",  dr2, nameof(ErrorRecord.DebitAccount2), 110);
+            Add("CreditAccount1", cr1, nameof(ErrorRecord.CreditAccount1), 110);
+            Add("CreditAccount2", cr2, nameof(ErrorRecord.CreditAccount2), 110);
+            Add("DrcostCenter",   drcc, nameof(ErrorRecord.DrCostCenter), 100);
+            Add("CrcostCenter",   crcc, nameof(ErrorRecord.CrCostCenter), 100);
+            Add("Ser",      serial,    nameof(ErrorRecord.Ser), 70);
+            Add("ERORR",    err,       nameof(ErrorRecord.Error), 280);
+            Add("failed_requests_timestamp", failedAt, nameof(ErrorRecord.FailedRequestsTimestamp), 140);
 
             grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+        }
+
+        private void ApplyLanguageUi()
+        {
+            _applyingLanguage = true;
+            try
+            {
+                this.RightToLeft = L.IsRtl ? RightToLeft.Yes : RightToLeft.No;
+                this.RightToLeftLayout = L.IsRtl;
+
+                this.Text = L.Str(StringKey.AppTitle);
+
+                if (_logoLabel != null) _logoLabel.Text = L.Str(StringKey.AppTitle);
+                if (_logoSubLabel != null) _logoSubLabel.Text = L.Str(StringKey.SidebarSubtitle);
+                if (_versionLabel != null) _versionLabel.Text = L.Str(StringKey.VersionLabel);
+
+                if (_homeSideBtn != null) _homeSideBtn.Text = L.Str(StringKey.SidebarHome);
+                if (_errorsSideBtn != null) _errorsSideBtn.Text = L.Str(StringKey.SidebarErrors);
+                if (_settingsSideBtn != null) _settingsSideBtn.Text = L.Str(StringKey.SidebarSettings);
+
+                var filterLabelAlign = L.IsRtl ? ContentAlignment.MiddleLeft : ContentAlignment.MiddleRight;
+                if (_fromLabel != null) _fromLabel.Text = L.Str(StringKey.From);
+                if (_toLabel != null) _toLabel.Text = L.Str(StringKey.To);
+                if (_fromLabel != null) _fromLabel.TextAlign = filterLabelAlign;
+                if (_toLabel != null) _toLabel.TextAlign = filterLabelAlign;
+
+                if (_modeLabel != null)
+                {
+                    _modeLabel.Text = L.Str(StringKey.Status);
+                    _modeLabel.TextAlign = filterLabelAlign;
+                }
+                if (_fetchBtn != null) _fetchBtn.Text = _page == "errors" ? L.Str(StringKey.FetchErrors) : L.Str(StringKey.Fetch);
+                if (_sendBtn != null) _sendBtn.Text = L.Str(StringKey.SendRange);
+
+                if (_countLabel != null)
+                {
+                    _countLabel.TextAlign = L.AlignNearMiddle();
+                    if (string.IsNullOrWhiteSpace(_countLabel.Text)) _countLabel.Text = L.Str(StringKey.NoRecordsLoaded);
+                }
+
+                if (_sendResultLabel != null) _sendResultLabel.TextAlign = L.AlignFarMiddle();
+                if (_statusLabel != null)
+                {
+                    _statusLabel.TextAlign = L.AlignNearMiddle();
+                    if (string.IsNullOrWhiteSpace(_statusLabel.Text)) _statusLabel.Text = L.Str(StringKey.Ready);
+                }
+
+                if (_errorSearchBox != null) SetCueBanner(_errorSearchBox, L.Str(StringKey.SearchCue));
+
+                if (_langBox != null)
+                {
+                    var item = _langBox.Items.Cast<object>().FirstOrDefault(i => i is LanguageItem li && li.Language == L.Current);
+                    if (item != null) _langBox.SelectedItem = item;
+                }
+
+                if (_dataGrid != null)
+                {
+                    StyleDataGrid(_dataGrid);
+                    if (_page == "errors") ConfigureErrorGridColumns(_dataGrid);
+                    else ConfigureGridColumns(_dataGrid);
+                    _dataGrid.Refresh();
+                }
+            }
+            finally
+            {
+                _applyingLanguage = false;
+            }
         }
 
         // ── Event handlers ─────────────────────────────────────────────────────
@@ -731,24 +916,24 @@ namespace EazyRentRevamp
         {
             try
             {
-                SetStatus("Fetching records...", ColorSidebarText);
-                ShowLoading("Fetching records");
+                SetStatus(L.Str(StringKey.FetchingRecords), ColorSidebarText);
+                ShowLoading(L.Str(StringKey.FetchingRecordsShort));
                 ToggleUi(false);
                 var from  = _fromPicker!.Value.Date;
                 var to    = _toPicker!.Value.Date;
-                var mode  = (_modeBox?.SelectedItem as string) ?? "unsent";
+                var mode  = (_modeBox?.SelectedItem as ModeItem)?.Value ?? "unsent";
                 ConfigureJournalGrid();
                 var rows  = await Task.Run(() => _backend.FetchRecords(from, to, mode));
                 _dataGrid!.DataSource = rows;
                 int total = await Task.Run(() => _backend.CountRecords(from, to, mode));
-                _countLabel!.Text = $"Showing {rows.Count} of {total} records   •   {from:dd MMM yyyy} → {to:dd MMM yyyy}   •   Mode: {mode}";
+                _countLabel!.Text = FormatRecordsSummary(rows.Count, total, from, to, mode, includeDates: true);
                 if (_sendResultLabel != null) _sendResultLabel.Text = string.Empty;
-                SetStatus($"Fetched {rows.Count} records", ColorSuccess);
+                SetStatus(L.Format(StringKey.FetchedRecords, rows.Count), ColorSuccess);
             }
             catch (Exception ex)
             {
-                SetStatus("Fetch failed", ColorDanger);
-                ShowError("Error fetching records", ex.Message);
+                SetStatus(L.Str(StringKey.FetchFailed), ColorDanger);
+                ShowError(L.Str(StringKey.ErrorFetchingTitle), ex.Message);
             }
             finally { HideLoading(); ToggleUi(true); }
         }
@@ -757,8 +942,8 @@ namespace EazyRentRevamp
         {
             try
             {
-                SetStatus("Loading errors...", ColorSidebarText);
-                ShowLoading("Loading errors");
+                SetStatus(L.Str(StringKey.LoadingErrors), ColorSidebarText);
+                ShowLoading(L.Str(StringKey.LoadingErrorsShort));
                 ToggleUi(false);
                 var from = _fromPicker!.Value.Date;
                 var to = _toPicker!.Value.Date;
@@ -767,14 +952,14 @@ namespace EazyRentRevamp
                 var rows = await Task.Run(() => _backend.FetchErrorRecords(from, to));
                 _dataGrid!.DataSource = rows;
                 int total = await Task.Run(() => _backend.CountErrorRecords(from, to));
-                _countLabel!.Text = $"Search results: {rows.Count} of {total}   •   {from:dd MMM yyyy} → {to:dd MMM yyyy}";
+                _countLabel!.Text = FormatErrorsSummary(rows.Count, total, from, to);
                 if (_sendResultLabel != null) _sendResultLabel.Text = string.Empty;
-                SetStatus($"Loaded {rows.Count} errors", ColorSuccess);
+                SetStatus(L.Format(StringKey.LoadedErrors, rows.Count), ColorSuccess);
             }
             catch (System.Exception ex)
             {
-                SetStatus("Load errors failed", ColorDanger);
-                ShowError("Error loading errors", ex.Message);
+                SetStatus(L.Str(StringKey.LoadErrorsFailed), ColorDanger);
+                ShowError(L.Str(StringKey.ErrorLoadingErrorsTitle), ex.Message);
             }
             finally { HideLoading(); ToggleUi(true); }
         }
@@ -795,8 +980,8 @@ namespace EazyRentRevamp
 
             try
             {
-                SetStatus("Searching errors...", ColorSidebarText);
-                ShowLoading("Searching errors");
+                SetStatus(L.Str(StringKey.SearchingErrors), ColorSidebarText);
+                ShowLoading(L.Str(StringKey.SearchingErrorsShort));
                 ToggleUi(false);
                 var from = _fromPicker!.Value.Date;
                 var to = _toPicker!.Value.Date;
@@ -805,14 +990,14 @@ namespace EazyRentRevamp
                 var rows = await Task.Run(() => _backend.SearchErrorRecords(from, to, serial));
                 _dataGrid!.DataSource = rows;
                 int total = await Task.Run(() => _backend.CountErrorRecordsSearch(from, to, serial));
-                _countLabel!.Text = $"Search Results for ({serial}): {rows.Count} of {total}   •   {from:dd MMM yyyy} → {to:dd MMM yyyy}";
+                _countLabel!.Text = FormatErrorSearchSummary(serial, rows.Count, total, from, to);
                 if (_sendResultLabel != null) _sendResultLabel.Text = string.Empty;
-                SetStatus($"Found {rows.Count} errors", ColorSuccess);
+                SetStatus(L.Format(StringKey.FoundErrors, rows.Count), ColorSuccess);
             }
             catch (System.Exception ex)
             {
-                SetStatus("Search errors failed", ColorDanger);
-                ShowError("Error searching errors", ex.Message);
+                SetStatus(L.Str(StringKey.SearchErrorsFailed), ColorDanger);
+                ShowError(L.Str(StringKey.ErrorSearchingErrorsTitle), ex.Message);
             }
             finally { HideLoading(); ToggleUi(true); }
         }
@@ -820,27 +1005,27 @@ namespace EazyRentRevamp
         private async Task OnSend()
         {
             var confirm = MessageBox.Show(
-                "Send all unsent records in the selected date range to the API?",
-                "Confirm Send", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                L.Str(StringKey.ConfirmSendBody),
+                L.Str(StringKey.ConfirmSendTitle), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (confirm != DialogResult.Yes) return;
 
             try
             {
-                SetStatus("Sending records...", ColorSidebarText);
-                ShowLoading("Sending records");
+                SetStatus(L.Str(StringKey.SendingRecords), ColorSidebarText);
+                ShowLoading(L.Str(StringKey.SendingRecordsShort));
                 ToggleUi(false);
                 var from = _fromPicker!.Value.Date;
                 var to   = _toPicker!.Value.Date;
 
-                if (_modeBox != null) _modeBox.SelectedItem = "unsent";
+                SelectMode("unsent");
                 var rows  = await Task.Run(() => _backend.FetchRecords(from, to, "unsent"));
                 _dataGrid!.DataSource = rows;
                 int total = await Task.Run(() => _backend.CountRecords(from, to, "unsent"));
-                _countLabel!.Text = $"Showing {rows.Count} of {total} records   •   Mode: unsent";
+                _countLabel!.Text = FormatRecordsSummary(rows.Count, total, from, to, "unsent", includeDates: false);
 
                 var result = await Task.Run(() => _backend.SendRange(from, to));
                 var isOk   = result.ToUpper().StartsWith("OK");
-                SetStatus(isOk ? "Send completed" : "Send completed with errors", isOk ? ColorSuccess : ColorDanger);
+                SetStatus(isOk ? L.Str(StringKey.SendCompleted) : L.Str(StringKey.SendCompletedWithErrors), isOk ? ColorSuccess : ColorDanger);
 
                 if (_sendResultLabel != null)
                 {
@@ -850,8 +1035,8 @@ namespace EazyRentRevamp
             }
             catch (Exception ex)
             {
-                SetStatus("Send failed", ColorDanger);
-                ShowError("Error sending range", ex.Message);
+                SetStatus(L.Str(StringKey.SendFailed), ColorDanger);
+                ShowError(L.Str(StringKey.ErrorSendingRangeTitle), ex.Message);
             }
             finally { HideLoading(); ToggleUi(true); }
         }
@@ -864,18 +1049,58 @@ namespace EazyRentRevamp
             return singleLine.Length <= max ? singleLine : singleLine.Substring(0, max) + "...";
         }
 
+        private void SelectMode(string value)
+        {
+            if (_modeBox == null) return;
+            var item = _modeBox.Items.Cast<object>().FirstOrDefault(i => i is ModeItem mi && mi.Value == value);
+            if (item != null) _modeBox.SelectedItem = item;
+        }
+
+        private static string ModeText(string modeValue)
+            => modeValue == "sent" ? L.Str(StringKey.ModeSent) : L.Str(StringKey.ModeUnsent);
+
+        private static string FormatRecordsSummary(int shown, int total, DateTime from, DateTime to, string modeValue, bool includeDates)
+        {
+            var modeText = ModeText(modeValue);
+
+            if (!includeDates)
+            {
+                return L.IsRtl
+                    ? $"عرض {shown} من {total} سجل   •   الحالة: {modeText}"
+                    : $"Showing {shown} of {total} records   •   Mode: {modeText}";
+            }
+
+            return L.IsRtl
+                ? $"عرض {shown} من {total} سجل   •   {from:dd MMM yyyy} → {to:dd MMM yyyy}   •   الحالة: {modeText}"
+                : $"Showing {shown} of {total} records   •   {from:dd MMM yyyy} → {to:dd MMM yyyy}   •   Mode: {modeText}";
+        }
+
+        private static string FormatErrorsSummary(int shown, int total, DateTime from, DateTime to)
+        {
+            return L.IsRtl
+                ? $"عرض {shown} من {total} خطأ   •   {from:dd MMM yyyy} → {to:dd MMM yyyy}"
+                : $"Showing {shown} of {total} errors   •   {from:dd MMM yyyy} → {to:dd MMM yyyy}";
+        }
+
+        private static string FormatErrorSearchSummary(string query, int shown, int total, DateTime from, DateTime to)
+        {
+            return L.IsRtl
+                ? $"نتائج البحث عن ({query}): {shown} من {total}   •   {from:dd MMM yyyy} → {to:dd MMM yyyy}"
+                : $"Search Results for ({query}): {shown} of {total}   •   {from:dd MMM yyyy} → {to:dd MMM yyyy}";
+        }
+
         private void OnChangeDb()
         {
             using var ofd = new OpenFileDialog
             {
                 Filter = "Access Database|*.mdb;*.accdb",
-                Title  = "Select Main Database"
+                Title  = L.Str(StringKey.SelectMainDatabaseTitle)
             };
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 _backend.SetDbPath(ofd.FileName);
-                SetStatus($"Database: {System.IO.Path.GetFileName(ofd.FileName)}", ColorSuccess);
-                MessageBox.Show($"Database set to:\n{ofd.FileName}", "Database Changed",
+                SetStatus(L.Format(StringKey.DatabaseStatusPrefix, System.IO.Path.GetFileName(ofd.FileName)), ColorSuccess);
+                MessageBox.Show(L.Format(StringKey.DatabaseSetBody, ofd.FileName), L.Str(StringKey.DatabaseChangedTitle),
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
@@ -887,7 +1112,7 @@ namespace EazyRentRevamp
             {
                 Width           = 540,
                 Height          = 380,
-                Text            = "Settings — EazyRent Plus",
+                Text            = L.Str(StringKey.SettingsTitle),
                 StartPosition   = FormStartPosition.CenterParent,
                 BackColor       = Color.White,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
@@ -900,33 +1125,33 @@ namespace EazyRentRevamp
             Label MkLbl(string t) { var l = new Label { Left = 24, Top = y, Width = 490, Text = t, ForeColor = ColorTextMuted, Font = FontLabel }; return l; }
             TextBox MkTxt(string v) { var tb = new TextBox { Left = 24, Top = y + 18, Width = 490, Text = v, Font = FontLabel, BorderStyle = BorderStyle.FixedSingle }; return tb; }
 
-            dlg.Controls.Add(MkLbl("Main DB Path (.accdb / .mdb)")); var txtDb = MkTxt(_backend.DatabasePath); txtDb.Width = 400; dlg.Controls.Add(txtDb);
-            var browseDb = new Button { Text = "Browse...", Left = 428, Top = y + 16, Width = 86, Height = 26, FlatStyle = FlatStyle.Flat, BackColor = Color.White, Font = FontLabel };
+            dlg.Controls.Add(MkLbl(L.Str(StringKey.MainDbPathLabel))); var txtDb = MkTxt(_backend.DatabasePath); txtDb.Width = 400; dlg.Controls.Add(txtDb);
+            var browseDb = new Button { Text = L.Str(StringKey.Browse), Left = 428, Top = y + 16, Width = 86, Height = 26, FlatStyle = FlatStyle.Flat, BackColor = Color.White, Font = FontLabel };
             browseDb.FlatAppearance.BorderColor = ColorBorder;
             browseDb.Click += (s, e) =>
             {
-                using var ofd = new OpenFileDialog { Filter = "Access DB|*.accdb;*.mdb", Title = "Select Main DB" };
+                using var ofd = new OpenFileDialog { Filter = "Access DB|*.accdb;*.mdb", Title = L.Str(StringKey.SelectMainDbTitle) };
                 if (ofd.ShowDialog(dlg) == DialogResult.OK) txtDb.Text = ofd.FileName;
             };
             dlg.Controls.Add(browseDb);
             y += 56;
 
-            dlg.Controls.Add(MkLbl("Login URL")); var txtLogin = MkTxt(_backend.LoginUrl); dlg.Controls.Add(txtLogin); y += 56;
-            dlg.Controls.Add(MkLbl("Import URL")); var txtImport = MkTxt(_backend.ImportUrl); dlg.Controls.Add(txtImport); y += 56;
-            dlg.Controls.Add(MkLbl("Error DB Path (.accdb / .mdb)")); var txtError = MkTxt(_backend.ErrorDbPath); txtError.Width = 400; dlg.Controls.Add(txtError);
+            dlg.Controls.Add(MkLbl(L.Str(StringKey.LoginUrlLabel))); var txtLogin = MkTxt(_backend.LoginUrl); dlg.Controls.Add(txtLogin); y += 56;
+            dlg.Controls.Add(MkLbl(L.Str(StringKey.ImportUrlLabel))); var txtImport = MkTxt(_backend.ImportUrl); dlg.Controls.Add(txtImport); y += 56;
+            dlg.Controls.Add(MkLbl(L.Str(StringKey.ErrorDbPathLabel))); var txtError = MkTxt(_backend.ErrorDbPath); txtError.Width = 400; dlg.Controls.Add(txtError);
 
-            var browse = new Button { Text = "Browse...", Left = 428, Top = y + 16, Width = 86, Height = 26, FlatStyle = FlatStyle.Flat, BackColor = Color.White, Font = FontLabel };
+            var browse = new Button { Text = L.Str(StringKey.Browse), Left = 428, Top = y + 16, Width = 86, Height = 26, FlatStyle = FlatStyle.Flat, BackColor = Color.White, Font = FontLabel };
             browse.FlatAppearance.BorderColor = ColorBorder;
             browse.Click += (s, e) =>
             {
-                using var ofd = new OpenFileDialog { Filter = "Access DB|*.accdb;*.mdb", Title = "Select Error DB" };
+                using var ofd = new OpenFileDialog { Filter = "Access DB|*.accdb;*.mdb", Title = L.Str(StringKey.SelectErrorDbTitle) };
                 if (ofd.ShowDialog(dlg) == DialogResult.OK) txtError.Text = ofd.FileName;
             };
             dlg.Controls.Add(browse);
 
-            var ok = new Button { Text = "Save Settings", Left = 320, Top = 250, Width = 110, Height = 32, FlatStyle = FlatStyle.Flat, BackColor = ColorAccent, ForeColor = Color.White, Font = FontBold };
+            var ok = new Button { Text = L.Str(StringKey.SaveSettings), Left = 320, Top = 250, Width = 110, Height = 32, FlatStyle = FlatStyle.Flat, BackColor = ColorAccent, ForeColor = Color.White, Font = FontBold };
             ok.FlatAppearance.BorderSize = 0;
-            var cancel = new Button { Text = "Cancel", Left = 440, Top = 250, Width = 74, Height = 32, FlatStyle = FlatStyle.Flat, BackColor = Color.White, Font = FontLabel };
+            var cancel = new Button { Text = L.Str(StringKey.Cancel), Left = 440, Top = 250, Width = 74, Height = 32, FlatStyle = FlatStyle.Flat, BackColor = Color.White, Font = FontLabel };
             cancel.FlatAppearance.BorderColor = ColorBorder;
             ok.Click     += (s, e) => { dlg.Tag = Tuple.Create(txtDb.Text, txtLogin.Text, txtImport.Text, txtError.Text); dlg.DialogResult = DialogResult.OK; dlg.Close(); };
             cancel.Click += (s, e) => { dlg.DialogResult = DialogResult.Cancel; dlg.Close(); };
@@ -943,7 +1168,7 @@ namespace EazyRentRevamp
                 _backend.SetLoginUrl(t?.Item2  ?? string.Empty);
                 _backend.SetImportUrl(t?.Item3 ?? string.Empty);
                 _backend.SetErrorDbPath(t?.Item4 ?? string.Empty);
-                SetStatus("Settings saved", ColorSuccess);
+                SetStatus(L.Str(StringKey.SettingsSaved), ColorSuccess);
             }
         }
 
@@ -957,7 +1182,7 @@ namespace EazyRentRevamp
                 {
                     Width = 360,
                     Height = 170,
-                    Text = "Enter Password",
+                    Text = L.Str(StringKey.EnterPasswordTitle),
                     StartPosition = FormStartPosition.CenterParent,
                     FormBorderStyle = FormBorderStyle.FixedDialog,
                     MaximizeBox = false,
@@ -971,7 +1196,7 @@ namespace EazyRentRevamp
                     Left = 18,
                     Top = 18,
                     Width = 310,
-                    Text = "Password required to open Settings:",
+                    Text = L.Str(StringKey.PasswordRequiredBody),
                     ForeColor = Color.FromArgb(100, 116, 139)
                 };
 
@@ -984,7 +1209,7 @@ namespace EazyRentRevamp
                 };
 
                 var ok = new Button { Text = "OK", Left = 176, Top = 85, Width = 72, Height = 28 };
-                var cancel = new Button { Text = "Cancel", Left = 256, Top = 85, Width = 72, Height = 28 };
+                var cancel = new Button { Text = L.Str(StringKey.Cancel), Left = 256, Top = 85, Width = 72, Height = 28 };
                 ok.Click += (s, e) => { dlg.DialogResult = DialogResult.OK; dlg.Close(); };
                 cancel.Click += (s, e) => { dlg.DialogResult = DialogResult.Cancel; dlg.Close(); };
 
@@ -1000,7 +1225,7 @@ namespace EazyRentRevamp
 
                 if (txt.Text == required) return true;
 
-                MessageBox.Show("Wrong password. Try again.", "Incorrect Password",
+                MessageBox.Show(L.Str(StringKey.WrongPasswordBody), L.Str(StringKey.IncorrectPasswordTitle),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
@@ -1065,7 +1290,7 @@ namespace EazyRentRevamp
             if (_modeLabel != null) _modeLabel.Visible = !isErrors;
             if (_errorSearchRow != null) _errorSearchRow.Visible = isErrors;
 
-            if (_fetchBtn != null) _fetchBtn.Text = isErrors ? "Fetch Errors" : "Fetch";
+            if (_fetchBtn != null) _fetchBtn.Text = isErrors ? L.Str(StringKey.FetchErrors) : L.Str(StringKey.Fetch);
 
             if (_dataGrid != null)
             {
@@ -1077,7 +1302,7 @@ namespace EazyRentRevamp
             SetSidebarActive(_errorsSideBtn, isErrors);
 
             if (_sendResultLabel != null) _sendResultLabel.Text = string.Empty;
-            SetStatus(isErrors ? "Errors view" : "Ready", ColorSidebarText);
+            SetStatus(isErrors ? L.Str(StringKey.ErrorsView) : L.Str(StringKey.Ready), ColorSidebarText);
         }
 
         private void ClearGridAndStats()

@@ -59,6 +59,8 @@ namespace EazyRentRevamp
     {
         public string DatabasePath { get; set; } = string.Empty;
         public string ErrorDbPath { get; set; } = string.Empty;
+        // 1 = English, 2 = Arabic (default)
+        public int Language { get; set; } = 2;
         // Import endpoint (GL ImportJournal)
         public string ImportUrl { get; set; } = "http://localhost:8081/api/GL/ImportJournal";
         // Login endpoint
@@ -76,6 +78,7 @@ namespace EazyRentRevamp
             LoginUrl ??= "http://localhost:8081/api/Auth/login";
             Endpoint ??= string.Empty;
             RecentDatabases ??= new List<string>();
+            if (Language != 1 && Language != 2) Language = 2;
 
             // Migrate older Endpoint value to ImportUrl if ImportUrl is empty.
             if (string.IsNullOrWhiteSpace(ImportUrl) && !string.IsNullOrWhiteSpace(Endpoint))

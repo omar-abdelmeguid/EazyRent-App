@@ -114,6 +114,13 @@ namespace EazyRentRevamp
         public string DatabasePath => _memory.DatabasePath ?? string.Empty;
         public string ErrorDbPath => _memory.ErrorDbPath ?? string.Empty;
         public IReadOnlyList<string> RecentDatabases => _memory.RecentDatabases.AsReadOnly();
+        public AppLanguage Language => _memory.Language == 1 ? AppLanguage.English : AppLanguage.Arabic;
+
+        public void SetLanguage(AppLanguage language)
+        {
+            _memory.Language = language == AppLanguage.English ? 1 : 2;
+            _memoryStore.Save(_memory);
+        }
 
         public List<Record> FetchRecords(DateTime from, DateTime to, string mode)
         {
