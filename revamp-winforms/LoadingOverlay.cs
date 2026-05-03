@@ -10,6 +10,8 @@ namespace EazyRentRevamp
         private readonly System.Windows.Forms.Timer _timer;
         private int _angle;
         private string _message = "Loading...";
+        private bool _showProgress;
+        private int _progressPercent;
 
         public LoadingOverlay()
         {
@@ -31,15 +33,39 @@ namespace EazyRentRevamp
         public void Show(string message)
         {
             _message = string.IsNullOrWhiteSpace(message) ? "Loading..." : message.Trim();
+            _showProgress = false;
+            _progressPercent = 0;
             Visible = true;
             BringToFront();
             _timer.Start();
+        }
+
+        public void ShowProgress(string message)
+        {
+            _message = string.IsNullOrWhiteSpace(message) ? "Loading..." : message.Trim();
+            _showProgress = true;
+            _progressPercent = 0;
+            Visible = true;
+            BringToFront();
+            _timer.Start();
+            Invalidate();
+        }
+
+        public void SetProgress(int percent)
+        {
+            if (!_showProgress) return;
+            if (percent < 0) percent = 0;
+            if (percent > 100) percent = 100;
+            _progressPercent = percent;
+            Invalidate();
         }
 
         public void HideOverlay()
         {
             _timer.Stop();
             Visible = false;
+            _showProgress = false;
+            _progressPercent = 0;
         }
 
         protected override void Dispose(bool disposing)
@@ -55,7 +81,7 @@ namespace EazyRentRevamp
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             const int cardW = 360;
-            const int cardH = 140;
+            var cardH = _showProgress ? 170 : 140;
             var cardX = (Width - cardW) / 2;
             var cardY = (Height - cardH) / 2;
             var cardRect = new Rectangle(cardX, cardY, cardW, cardH);
@@ -99,7 +125,27 @@ namespace EazyRentRevamp
                 var titleX = cardRect.Left + 78;
                 var titleY = cardRect.Top + 36;
                 g.DrawString(_message, titleFont, titleBrush, titleX, titleY);
-                g.DrawString("Please wait…", bodyFont, bodyBrush, titleX, titleY + 28);
+                var sub = _showProgress ? $"{_progressPercent}%" : "Please wait…";
+                g.DrawString(sub, bodyFont, bodyBrush, titleX, titleY + 28);
+            }
+
+            if (_showProgress)
+            {
+                var barLeft = cardRect.Left + 78;
+                var barTop = cardRect.Top + 102;
+                var barW = cardRect.Width - 78 - 24;
+                var barH = 10;
+
+                var trackRect = new Rectangle(barLeft, barTop, barW, barH);
+                var fillW = (int)Math.Round(barW * (_progressPercent / 100.0));
+                if (fillW < 0) fillW = 0;
+                if (fillW > barW) fillW = barW;
+                var fillRect = new Rectangle(barLeft, barTop, fillW, barH);
+
+                using var trackBrush = new SolidBrush(Color.FromArgb(226, 232, 240));
+                using var fillBrush = new SolidBrush(Color.FromArgb(99, 102, 241));
+                FillRoundedRect(g, trackRect, 6, trackBrush);
+                if (fillW > 0) FillRoundedRect(g, fillRect, 6, fillBrush);
             }
         }
 

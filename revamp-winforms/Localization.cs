@@ -71,7 +71,13 @@ namespace EazyRentRevamp
         PasswordRequiredBody,
         WrongPasswordBody,
         IncorrectPasswordTitle,
-        Language
+        Language,
+
+        // Send range result card
+        ResultStatementLabel,
+        ResultGlLabel,
+        ResultTotalLabel,
+        ResultSkippedLabel
     }
 
     public static class L
@@ -152,6 +158,10 @@ namespace EazyRentRevamp
                     StringKey.WrongPasswordBody => "Wrong password. Try again.",
                     StringKey.IncorrectPasswordTitle => "Incorrect Password",
                     StringKey.Language => "Language",
+                    StringKey.ResultStatementLabel => "Statement",
+                    StringKey.ResultGlLabel => "GL",
+                    StringKey.ResultTotalLabel => "Total",
+                    StringKey.ResultSkippedLabel => "skipped",
                     _ => key.ToString()
                 };
             }
@@ -189,7 +199,7 @@ namespace EazyRentRevamp
                 StringKey.FoundErrors => "تم العثور على {0} خطأ",
                 StringKey.SearchErrorsFailed => "فشل البحث في الأخطاء",
                 StringKey.ConfirmSendTitle => "تأكيد الإرسال",
-                StringKey.ConfirmSendBody => "هل تريد إرسال جميع السجلات غير المرسلة ضمن الفترة المحددة إلى API؟",
+                StringKey.ConfirmSendBody => "هل أنت متأكد أنك تريد إرسال البيانات المحددة؟",
                 StringKey.SendingRecords => "جاري إرسال السجلات...",
                 StringKey.SendingRecordsShort => "جاري إرسال السجلات",
                 StringKey.SendCompleted => "تم الإرسال بنجاح",
@@ -219,6 +229,10 @@ namespace EazyRentRevamp
                 StringKey.WrongPasswordBody => "كلمة المرور غير صحيحة. حاول مرة أخرى.",
                 StringKey.IncorrectPasswordTitle => "كلمة مرور غير صحيحة",
                 StringKey.Language => "اللغة",
+                StringKey.ResultStatementLabel => "Statement table",
+                StringKey.ResultGlLabel => "GL Journal table",
+                StringKey.ResultTotalLabel => "الإجمالي",
+                StringKey.ResultSkippedLabel => "تم تخطيه",
                 _ => key.ToString()
             };
         }
@@ -236,4 +250,3 @@ namespace EazyRentRevamp
             => IsRtl ? ContentAlignment.MiddleLeft : ContentAlignment.MiddleRight;
     }
 }
-

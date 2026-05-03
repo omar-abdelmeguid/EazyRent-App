@@ -11,6 +11,8 @@ namespace EazyRentRevamp
 {
     public partial class MainForm : Form
     {
+        private Panel? _resultCard;
+        private Label? _resultCardText;
         private readonly BackendService _backend;
         private DateTimePicker? _fromPicker;
         private DateTimePicker? _toPicker;
@@ -208,34 +210,58 @@ namespace EazyRentRevamp
                 {
                     foreach (var (msg, mw) in _marqueeMessages.Zip(msgWidths, (a, b) => (a, b)))
                     {
-                        // Message text centered in its slot
-                        var textY = (marqueeClip.Height - msgFont.Height) / 2;
-                        g.DrawString(msg, msgFont, new SolidBrush(textColor), x + padMsg, textY);
-                        x += mw;
+                       // Pre-create brushes ONCE — put these lines just before marqueeClip.Paint +=
+var brushText  = new SolidBrush(textColor);
+var brushSepBg = new SolidBrush(sepBg);
+var brushSepFg = new SolidBrush(sepFg);
 
-                        // Separator wall
-                        var sepRect = new Rectangle(x, 0, sepW, marqueeClip.Height);
-                        g.FillRectangle(new SolidBrush(sepBg), sepRect);
-                        // House shape in center of wall
-                        int mx = x + sepW / 2;
-                        int my = marqueeClip.Height / 2;
-                        int hw = 7; // half-width of house base
-                        int hh = 5; // height of house body
-                        int rh = 4; // height of roof
-                        // Roof triangle
-                        g.FillPolygon(new SolidBrush(sepFg), new[]
-                        {
-                            new Point(mx,      my - hh - rh),   // peak
-                            new Point(mx - hw, my - hh),        // left eave
-                            new Point(mx + hw, my - hh),        // right eave
-                        });
-                        // Body rectangle
-                        g.FillRectangle(new SolidBrush(sepFg),
-                            mx - hw, my - hh, hw * 2, hh + 3);
-                        // Door (small dark rect)
-                        g.FillRectangle(new SolidBrush(sepBg),
-                            mx - 2, my - 1, 5, hh + 2);
-                        x += sepW;
+// Then replace the inner loop content:
+marqueeClip.Paint += (s, e) =>
+{
+    var g = e.Graphics;
+    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+    int x = _marqueeX;
+
+    for (int cycle = 0; cycle < 2; cycle++)
+    {
+        foreach (var (msg, mw) in _marqueeMessages.Zip(msgWidths, (a, b) => (a, b)))
+        {
+            // Message text
+                var textY = (marqueeClip.Height - msgFont.Height) / 2;
+                g.DrawString(msg, msgFont, brushText, x + padMsg, textY); // ← reused
+                x += mw;
+
+                // Separator wall
+                var sepRect = new Rectangle(x, 0, sepW, marqueeClip.Height);
+                g.FillRectangle(brushSepBg, sepRect); // ← reused
+
+                // House shape
+                int mx = x + sepW / 2;
+                int my = marqueeClip.Height / 2;
+                int hw = 7, hh = 5, rh = 4;
+
+                g.FillPolygon(brushSepFg, new[]   // ← reused
+                {
+                    new Point(mx,      my - hh - rh),
+                    new Point(mx - hw, my - hh),
+                    new Point(mx + hw, my - hh),
+                });
+                g.FillRectangle(brushSepFg, mx - hw, my - hh, hw * 2, hh + 3); // ← reused
+                g.FillRectangle(brushSepBg, mx - 2,  my - 1,  5,      hh + 2); // ← reused
+
+                x += sepW;
+            }
+        }
+    };
+
+    // Clean up the 3 brush objects when panel is destroyed
+    marqueeClip.Disposed += (s, e) =>
+    {
+        brushText.Dispose();
+        brushSepBg.Dispose();
+        brushSepFg.Dispose();
+        msgFont.Dispose();
+    };
                     }
                 }
             };
@@ -460,7 +486,7 @@ namespace EazyRentRevamp
             _loadingOverlay = new LoadingOverlay();
             this.Controls.Add(_loadingOverlay);
             _loadingOverlay.BringToFront();
-
+            BuildResultCard(_contentPanel!);
             ApplyPageUi();
             ApplyLanguageUi();
         }
@@ -837,6 +863,9 @@ namespace EazyRentRevamp
             _applyingLanguage = true;
             try
             {
+                // Hide summary bar when switching language
+                HideResultCard();
+
                 this.RightToLeft = L.IsRtl ? RightToLeft.Yes : RightToLeft.No;
                 this.RightToLeftLayout = L.IsRtl;
 
@@ -1006,39 +1035,80 @@ namespace EazyRentRevamp
         {
             var confirm = MessageBox.Show(
                 L.Str(StringKey.ConfirmSendBody),
-                L.Str(StringKey.ConfirmSendTitle), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                L.Str(StringKey.ConfirmSendTitle),
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (confirm != DialogResult.Yes) return;
 
             try
             {
-                SetStatus(L.Str(StringKey.SendingRecords), ColorSidebarText);
-                ShowLoading(L.Str(StringKey.SendingRecordsShort));
+                SetStatus("Sending records...", ColorSidebarText);
+                ShowLoadingProgress("Sending...");
                 ToggleUi(false);
                 var from = _fromPicker!.Value.Date;
                 var to   = _toPicker!.Value.Date;
 
                 SelectMode("unsent");
-                var rows  = await Task.Run(() => _backend.FetchRecords(from, to, "unsent"));
+                var rows = await Task.Run(() => _backend.FetchRecords(from, to, "unsent"));
                 _dataGrid!.DataSource = rows;
-                int total = await Task.Run(() => _backend.CountRecords(from, to, "unsent"));
-                _countLabel!.Text = FormatRecordsSummary(rows.Count, total, from, to, "unsent", includeDates: false);
 
-                var result = await Task.Run(() => _backend.SendRange(from, to));
-                var isOk   = result.ToUpper().StartsWith("OK");
-                SetStatus(isOk ? L.Str(StringKey.SendCompleted) : L.Str(StringKey.SendCompletedWithErrors), isOk ? ColorSuccess : ColorDanger);
+                var progress = new Progress<int>(p => SetLoadingProgress(p));
+                var result = await Task.Run(() => _backend.SendRange(from, to, progress));
 
-                if (_sendResultLabel != null)
-                {
-                    _sendResultLabel.ForeColor = isOk ? ColorSuccess : ColorDanger;
-                    _sendResultLabel.Text = FormatSendResultForUi(result);
-                }
+                // Show inline card instead of MessageBox
+                ShowResultCard(result);
+
+                SetStatus(result.IsOk ? "Send completed" : "Send completed with errors",
+                        result.IsOk ? ColorSuccess : ColorDanger);
             }
             catch (Exception ex)
             {
-                SetStatus(L.Str(StringKey.SendFailed), ColorDanger);
-                ShowError(L.Str(StringKey.ErrorSendingRangeTitle), ex.Message);
+                SetStatus("Send failed", ColorDanger);
+                ShowError("Error", ex.Message);
             }
             finally { HideLoading(); ToggleUi(true); }
+        }
+
+        private void ShowResultCard(BackendService.SendRangeResult r)
+        {
+            if (_resultCard == null || _resultCardText == null) return;
+
+            // Requested UI enhancement: show the summary in yellow and visually segment sections.
+            var color = Color.FromArgb(255, 255, 255); // amber/yellow
+
+            const string Arrow = "→";
+            const string Ok = "✔";
+            const string Fail = "✖";
+            const string Skip = "⟲";
+            const string Warn = "⚠";
+            const string Wall = "   │   ";
+
+            var icon = !r.IsOk || r.HasWarnings ? Warn : Ok;
+
+            var statementLabel = L.Str(StringKey.ResultStatementLabel);
+            var glLabel        = L.Str(StringKey.ResultGlLabel);
+            var totalLabel     = L.Str(StringKey.ResultTotalLabel);
+            var skippedLabel   = L.Str(StringKey.ResultSkippedLabel);
+
+            _resultCardText.Text =
+                $"{icon}  {statementLabel} {Arrow} {Ok} {r.SuccessStatement}   {Fail} {r.FailStatement}   {Skip} {r.SkipStatement} {skippedLabel}" +
+                Wall +
+                $"{glLabel} {Arrow} {Ok} {r.SuccessGl}   {Fail} {r.FailGl}   {Skip} {r.SkipGl} {skippedLabel}" +
+                Wall +
+                $"{totalLabel} {Arrow} {Ok} {r.TotalSuccess}   {Fail} {r.TotalFail}   {Skip} {r.TotalSkip} {skippedLabel}" +
+                (r.ErrorMessage != null ? $"     {Warn} {r.ErrorMessage}" : "");
+
+            _resultCard.BackColor = Color.FromArgb(88, 28, 135); // light yellow tint
+
+            _resultCardText.ForeColor = color;
+            _resultCard.Height = 42;
+            _resultCard.BringToFront();
+        }
+
+        private void HideResultCard()
+        {
+            if (_resultCard == null || _resultCardText == null) return;
+            _resultCardText.Text = string.Empty;
+            _resultCard.Height = 0;
         }
 
         private static string FormatSendResultForUi(string result)
@@ -1231,7 +1301,34 @@ namespace EazyRentRevamp
         }
 
         // ── Helpers ────────────────────────────────────────────────────────────
+        
+        private void BuildResultCard(Panel parent)
+        {
+            _resultCard = new Panel
+            {
+                Dock      = DockStyle.Bottom,
+                Height    = 0,
+                BackColor = Color.FromArgb(240, 253, 244),
+                Padding   = new Padding(20, 0, 20, 0)
+            };
+            _resultCard.Paint += (s, e) =>
+            {
+                using var pen = new Pen(ColorAccent);
+                e.Graphics.DrawLine(pen, 0, 0, ((Panel)s!).Width, 0);
+            };
 
+            _resultCardText = new Label
+            {
+                Dock      = DockStyle.Fill,
+                ForeColor = ColorText,
+                Font      = FontLabel,
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            _resultCard.Controls.Add(_resultCardText);
+            parent.Controls.Add(_resultCard);
+        }
+        
         private void SetStatus(string msg, Color color)
         {
             if (_statusLabel == null) return;
@@ -1260,6 +1357,20 @@ namespace EazyRentRevamp
             _loadingOverlay.Show(message);
         }
 
+        private void ShowLoadingProgress(string message)
+        {
+            if (_loadingOverlay == null) return;
+            if (InvokeRequired) { Invoke(() => ShowLoadingProgress(message)); return; }
+            _loadingOverlay.ShowProgress(message);
+        }
+
+        private void SetLoadingProgress(int percent)
+        {
+            if (_loadingOverlay == null) return;
+            if (InvokeRequired) { Invoke(() => SetLoadingProgress(percent)); return; }
+            _loadingOverlay.SetProgress(percent);
+        }
+
         private void HideLoading()
         {
             if (_loadingOverlay == null) return;
@@ -1282,6 +1393,8 @@ namespace EazyRentRevamp
             if (_lastAppliedPage != _page)
             {
                 ClearGridAndStats();
+                // Hide summary bar when navigating between pages
+                HideResultCard();
                 _lastAppliedPage = _page;
             }
 
@@ -1296,6 +1409,10 @@ namespace EazyRentRevamp
             {
                 if (isErrors) ConfigureErrorGridColumns(_dataGrid);
                 else ConfigureGridColumns(_dataGrid);
+
+                // Keep errors grid horizontally scrollable in a predictable (LTR) direction
+                // so users can reach right-most columns like the timestamp.
+                if (isErrors) _dataGrid.RightToLeft = RightToLeft.No;
             }
 
             SetSidebarActive(_homeSideBtn, !isErrors);

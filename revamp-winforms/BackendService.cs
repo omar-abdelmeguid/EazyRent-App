@@ -11,6 +11,7 @@ namespace EazyRentRevamp
 {
     public class BackendService
     {
+        //public bool HasWarnings => TotalSkip > 0;
         private readonly DataAccess _dataAccess = new DataAccess();
         private readonly MemoryStore _memoryStore = new MemoryStore();
         private MemoryModel _memory;
@@ -239,65 +240,81 @@ namespace EazyRentRevamp
             return _dataAccess.CountOn(_memory.ErrorDbPath, includePassword: false, _countErrorSearch, term, from, to)
                  + _dataAccess.CountOn(_memory.ErrorDbPath, includePassword: false, _countErrorRoomNumber, term, from, to);
         }
-public (int successStatement, int failStatement, int successGl, int failGl) SendRangeWithStats(DateTime from, DateTime to)
-{
-    int successStatement = 0, failStatement = 0, successGl = 0, failGl = 0;
-    SendRange_statement(from, to, ref successStatement, ref failStatement);
-    SendRange_gl(from, to, ref successGl, ref failGl);
-    return (successStatement, failStatement, successGl, failGl);
-}
+        
+   
 
-    public string SendRange(DateTime from, DateTime to)
+    public SendRangeResult SendRange(DateTime from, DateTime to)
+        => SendRange(from, to, progress: null);
+
+    public SendRangeResult SendRange(DateTime from, DateTime to, IProgress<int>? progress)
     {
         try { _errorDbWriter.EnsureReady(); }
-        catch (Exception ex) { return "Error: Could not initialize error database: " + ex.Message; }
+        catch (Exception ex)
+            { return new SendRangeResult { ErrorMessage = "Could not initialize error database: " + ex.Message }; }
 
         if (_errorDbWriter == null)
-            return "Error: No error database configured. Please set the error DB path before sending.";
+            return new SendRangeResult { ErrorMessage = "No error database configured." };
 
-        int successStatement = 0, failStatement = 0, successGl = 0, failGl = 0;
+        var result = new SendRangeResult();
 
-        string statement = SendRange_statement(from, to, ref successStatement, ref failStatement);
-        string gl = SendRange_gl(from, to, ref successGl, ref failGl);
+        IReadOnlyList<Row>? statementRows = null;
+        IReadOnlyList<Row>? glRows = null;
+        try { statementRows = _dataAccess.Query(_sqlSendRange_statment, from, to); } catch { }
+        try { glRows        = _dataAccess.Query(_sqlSendRange_GL, from, to); } catch { }
 
-        bool statementOk = statement.ToUpper().Contains("OK") || statement == "No records to send";
-        bool glOk = gl.ToUpper().Contains("OK") || gl == "No records to send";
+        var total = (statementRows?.Count ?? 0) + (glRows?.Count ?? 0);
+        var done = 0;
 
-        // build summary
-        int totalSuccess = successStatement + successGl;
-        int totalFail = failStatement + failGl;
+        void ReportOne()
+        {
+            if (total <= 0) return;
+            done++;
+            var pct = (int)Math.Round(done * 100.0 / total, MidpointRounding.AwayFromZero);
+            if (pct < 0) pct = 0;
+            if (pct > 100) pct = 100;
+            progress?.Report(pct);
+        }
 
-        string summary =
-            $"Results:\n" +
-            $"Statement → Success: {successStatement}, Failed: {failStatement}\n" +
-            $"GL        → Success: {successGl}, Failed: {failGl}\n" +
-            $"─────────────────────────\n" +
-            $"Total     → Success: {totalSuccess}, Failed: {totalFail}";
+        progress?.Report(total <= 0 ? 100 : 0);
 
-        if (statementOk && glOk)
-            return "OK\n\n" + summary;
-
-        var errors = new List<string>();
-        if (!statementOk) errors.Add("Statement error: " + statement);
-        if (!glOk) errors.Add("GL error: " + gl);
-
-        return string.Join(" | ", errors) + "\n\n" + summary;
+        SendRange_statement(statementRows, ref result, onItemDone: ReportOne);
+        SendRange_gl(glRows, ref result, onItemDone: ReportOne);
+        return result;
     }
 
-    public string SendRange_statement(DateTime from, DateTime to, ref int successCount, ref int failCount)
+    public void SendRange_statement(DateTime from, DateTime to, ref SendRangeResult result)
     {
         try
         {
             var rows = _dataAccess.Query(_sqlSendRange_statment, from, to);
-            if (rows == null || rows.Count == 0) return "No records to send";
+            SendRange_statement(rows, ref result, onItemDone: null);
+        }
+        catch (Exception ex) { result.ErrorMessage = "Statement error: " + ex.Message; }
+    }
 
-            var token = LoginExact();
-            foreach (var row in rows)
+    public void SendRange_gl(DateTime from, DateTime to, ref SendRangeResult result)
+    {
+        try
+        {
+            var rows = _dataAccess.Query(_sqlSendRange_GL, from, to);
+            SendRange_gl(rows, ref result, onItemDone: null);
+        }
+        catch (Exception ex) { result.ErrorMessage = (result.ErrorMessage ?? "") + " GL error: " + ex.Message; }
+    }
+
+    private void SendRange_statement(IReadOnlyList<Row>? rows, ref SendRangeResult result, Action? onItemDone)
+    {
+        if (rows == null || rows.Count == 0) return;
+
+        var token = LoginExact();
+        foreach (var row in rows)
+        {
+            try
             {
                 var journal = BuildJournalForApi(row);
-                if (journal == null) continue;
-                var ser = row.GetStringOrEmpty("Ser");
+                if (journal == null) { result.SkipStatement++; continue; } // ← skip counted
 
+                var ser     = row.GetStringOrEmpty("Ser");
                 var payload = JsonSerializer.Serialize(new[] { journal });
                 using var req = new HttpRequestMessage(HttpMethod.Post, _importUrl);
                 req.Headers.Accept.Clear();
@@ -305,45 +322,39 @@ public (int successStatement, int failStatement, int successGl, int failGl) Send
                 req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 req.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
-                var resp = _httpClient.SendAsync(req).GetAwaiter().GetResult();
+                var resp     = _httpClient.SendAsync(req).GetAwaiter().GetResult();
                 var respBody = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult() ?? string.Empty;
-
-                var parsed = TryParseImportResponse(respBody);
+                var parsed   = TryParseImportResponse(respBody);
 
                 if (IsImportSuccess(parsed))
                 {
-                    successCount++;
+                    result.SuccessStatement++;
                     if (!string.IsNullOrWhiteSpace(ser))
                         _dataAccess.Execute(_markSentStatementBySer, DateTime.Now, ser);
                 }
                 else
                 {
-                    failCount++;
+                    result.FailStatement++;
                     SaveImportError(row, parsed, respBody);
                 }
             }
-            return "OK";
-        }
-        catch (Exception ex)
-        {
-            return "Error sending: " + ex.Message + " | SQL(statement): " + _sqlSendRange_statment;
+            finally { onItemDone?.Invoke(); }
         }
     }
 
-    public string SendRange_gl(DateTime from, DateTime to, ref int successCount, ref int failCount)
+    private void SendRange_gl(IReadOnlyList<Row>? rows, ref SendRangeResult result, Action? onItemDone)
     {
-        try
-        {
-            var rows = _dataAccess.Query(_sqlSendRange_GL, from, to);
-            if (rows == null || rows.Count == 0) return "No records to send";
+        if (rows == null || rows.Count == 0) return;
 
-            var token = LoginExact();
-            foreach (var row in rows)
+        var token = LoginExact();
+        foreach (var row in rows)
+        {
+            try
             {
                 var journal = BuildJournalForApi(row);
-                if (journal == null) continue;
-                var ser = row.GetStringOrEmpty("Ser");
+                if (journal == null) { result.SkipGl++; continue; } // ← skip counted
 
+                var ser     = row.GetStringOrEmpty("Ser");
                 var payload = JsonSerializer.Serialize(new[] { journal });
                 using var req = new HttpRequestMessage(HttpMethod.Post, _importUrl);
                 req.Headers.Accept.Clear();
@@ -351,30 +362,42 @@ public (int successStatement, int failStatement, int successGl, int failGl) Send
                 req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 req.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
-                var resp = _httpClient.SendAsync(req).GetAwaiter().GetResult();
+                var resp     = _httpClient.SendAsync(req).GetAwaiter().GetResult();
                 var respBody = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult() ?? string.Empty;
-
-                var parsed = TryParseImportResponse(respBody);
+                var parsed   = TryParseImportResponse(respBody);
 
                 if (IsImportSuccess(parsed))
                 {
-                    successCount++;
+                    result.SuccessGl++;
                     if (!string.IsNullOrWhiteSpace(ser))
                         _dataAccess.Execute(_markSentGlBySer, DateTime.Now, ser);
                 }
                 else
                 {
-                    failCount++;
+                    result.FailGl++;
                     SaveImportError(row, parsed, respBody);
                 }
             }
-            return "OK";
-        }
-        catch (Exception ex)
-        {
-            return "Error sending: " + ex.Message + " | SQL(gl): " + _sqlSendRange_GL;
+            finally { onItemDone?.Invoke(); }
         }
     }
+    public sealed class SendRangeResult
+    {
+        public int SuccessStatement { get; set; }
+        public int FailStatement    { get; set; }
+        public int SkipStatement    { get; set; }
+        public int SuccessGl        { get; set; }
+        public int FailGl           { get; set; }
+        public int SkipGl           { get; set; }
+        public string? ErrorMessage { get; set; }
+
+        public int TotalSuccess  => SuccessStatement + SuccessGl;
+        public int TotalFail     => FailStatement    + FailGl;
+        public int TotalSkip     => SkipStatement    + SkipGl;
+        public bool IsOk         => string.IsNullOrEmpty(ErrorMessage) && TotalFail == 0;
+        public bool HasWarnings  => TotalSkip > 0;  
+    }
+    
         private static ImportJournalResponse? TryParseImportResponse(string responseBody)
         {
             if (string.IsNullOrWhiteSpace(responseBody)) return null;
