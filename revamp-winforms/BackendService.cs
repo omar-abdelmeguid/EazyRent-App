@@ -14,6 +14,7 @@ namespace EazyRentRevamp
         //public bool HasWarnings => TotalSkip > 0;
         private readonly DataAccess _dataAccess = new DataAccess();
         private readonly MemoryStore _memoryStore = new MemoryStore();
+        private readonly RequestLogger _logger = new RequestLogger();
         private MemoryModel _memory;
         private ErrorDbWriter? _errorDbWriter;
 
@@ -316,6 +317,10 @@ namespace EazyRentRevamp
 
                 var ser     = row.GetStringOrEmpty("Ser");
                 var payload = JsonSerializer.Serialize(new[] { journal });
+
+                _logger.LogRequest("POST", _importUrl, payload.Length > 500 ? payload.Substring(0, 500) + "..." : payload);
+
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 using var req = new HttpRequestMessage(HttpMethod.Post, _importUrl);
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -324,17 +329,24 @@ namespace EazyRentRevamp
 
                 var resp     = _httpClient.SendAsync(req).GetAwaiter().GetResult();
                 var respBody = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult() ?? string.Empty;
+                stopwatch.Stop();
+
+                _logger.LogResponse((int)resp.StatusCode, respBody, stopwatch.ElapsedMilliseconds);
+
                 var parsed   = TryParseImportResponse(respBody);
 
                 if (IsImportSuccess(parsed))
                 {
                     result.SuccessStatement++;
+                    _logger.LogImportSuccess(ser, "Statement processed successfully");
                     if (!string.IsNullOrWhiteSpace(ser))
                         _dataAccess.Execute(_markSentStatementBySer, DateTime.Now, ser);
                 }
                 else
                 {
                     result.FailStatement++;
+                    var errorMsg = ExtractImportError(parsed, respBody);
+                    _logger.LogImportFailure(ser, errorMsg);
                     SaveImportError(row, parsed, respBody);
                 }
             }
@@ -356,6 +368,10 @@ namespace EazyRentRevamp
 
                 var ser     = row.GetStringOrEmpty("Ser");
                 var payload = JsonSerializer.Serialize(new[] { journal });
+
+                _logger.LogRequest("POST", _importUrl, payload.Length > 500 ? payload.Substring(0, 500) + "..." : payload);
+
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 using var req = new HttpRequestMessage(HttpMethod.Post, _importUrl);
                 req.Headers.Accept.Clear();
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -364,17 +380,24 @@ namespace EazyRentRevamp
 
                 var resp     = _httpClient.SendAsync(req).GetAwaiter().GetResult();
                 var respBody = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult() ?? string.Empty;
+                stopwatch.Stop();
+
+                _logger.LogResponse((int)resp.StatusCode, respBody, stopwatch.ElapsedMilliseconds);
+
                 var parsed   = TryParseImportResponse(respBody);
 
                 if (IsImportSuccess(parsed))
                 {
                     result.SuccessGl++;
+                    _logger.LogImportSuccess(ser, "GL processed successfully");
                     if (!string.IsNullOrWhiteSpace(ser))
                         _dataAccess.Execute(_markSentGlBySer, DateTime.Now, ser);
                 }
                 else
                 {
                     result.FailGl++;
+                    var errorMsg = ExtractImportError(parsed, respBody);
+                    _logger.LogImportFailure(ser, errorMsg);
                     SaveImportError(row, parsed, respBody);
                 }
             }
@@ -407,10 +430,10 @@ namespace EazyRentRevamp
 
         private static bool IsImportSuccess(ImportJournalResponse? parsed)
         {
-          
             if (parsed == null) return false;
-            return parsed.Code == 0;
-
+            if (parsed.Code != 0) return false;
+            if (parsed.Content == null || parsed.Content.Count == 0) return false;
+            return parsed.Content[0].StatusCode == "200";
         }
 
         private void SaveImportError(Row sourceRow, ImportJournalResponse? parsed, string responseBody)
@@ -475,6 +498,9 @@ namespace EazyRentRevamp
 
             [JsonPropertyName("docSer")]
             public string? DocSer { get; set; }
+
+            [JsonPropertyName("statusCode")]
+            public string? StatusCode { get; set; }
         }
 
 
@@ -510,6 +536,9 @@ namespace EazyRentRevamp
             if (!string.IsNullOrWhiteSpace(_cachedToken)) return _cachedToken!;
 
             var body = JsonSerializer.Serialize(new { userId = _loginUserId, password = _loginPassword });
+            _logger.LogRequest("POST", _loginUrl, body);
+
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             using var req = new HttpRequestMessage(HttpMethod.Post, _loginUrl);
             req.Headers.TryAddWithoutValidation("accept", _hdrAccept);
             req.Headers.TryAddWithoutValidation("year", _hdrYear);
@@ -518,6 +547,9 @@ namespace EazyRentRevamp
 
             var resp = _httpClient.SendAsync(req).GetAwaiter().GetResult();
             var respBody = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult() ?? string.Empty;
+            stopwatch.Stop();
+
+            _logger.LogResponse((int)resp.StatusCode, respBody, stopwatch.ElapsedMilliseconds);
 
             var token = ExtractTokenLoose(respBody);
             if (string.IsNullOrWhiteSpace(token))
@@ -581,8 +613,9 @@ namespace EazyRentRevamp
             {
                 if (string.IsNullOrWhiteSpace(s)) return string.Empty;
                 var trimmed = s.Trim();
-                var sp = trimmed.IndexOf(' ');
-                return sp > 0 ? trimmed.Substring(0, sp) : trimmed;
+                if (DateTime.TryParse(trimmed, out var date))
+                    return date.ToString("yyyy-MM-dd");
+                return trimmed;
             }
 
             static bool IsValid(string s) => !string.IsNullOrWhiteSpace(s) && s.Trim().Length > 1;

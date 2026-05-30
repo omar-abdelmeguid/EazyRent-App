@@ -1,12 +1,13 @@
 {
-  "DatabasePath": "C:\\Users\\omara\\OneDrive\\Desktop\\home_omar\\home_omar.mdb",
+  "DatabasePath": "C:\\Users\\omara\\OneDrive\\Desktop\\home.mdb",
   "ErrorDbPath": "C:\\Users\\omara\\OneDrive\\Desktop\\Easy_Rent_Plus_REVAMP\\error_db.accdb",
-  "Language": 2,
+  "Language": 1,
   "ImportUrl": "http://localhost:8081/api/GL/ImportJournal",
   "LoginUrl": "http://localhost:8081/api/Auth/login",
   "Endpoint": "http://localhost:5000/import",
-  "LastUsedDatabase": "C:\\Users\\omara\\OneDrive\\Desktop\\home_omar\\home_omar.mdb",
+  "LastUsedDatabase": "C:\\Users\\omara\\OneDrive\\Desktop\\home.mdb",
   "RecentDatabases": [
+    "C:\\Users\\omara\\OneDrive\\Desktop\\home.mdb",
     "C:\\Users\\omara\\OneDrive\\Desktop\\home_omar\\home_omar.mdb"
   ]
 }

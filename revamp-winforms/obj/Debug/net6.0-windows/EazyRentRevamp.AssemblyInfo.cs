@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EazyRentRevamp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dd07d170dc657b846ba60199037b942baa4927ed")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4bd97501a5424cd4c97cc558b224ab9cf2087f5e")]
 [assembly: System.Reflection.AssemblyProductAttribute("EazyRentRevamp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EazyRentRevamp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
