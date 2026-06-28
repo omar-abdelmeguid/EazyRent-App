@@ -1,0 +1,12 @@
+{
+  "DatabasePath": "C:\\Users\\omara\\OneDrive\\Desktop\\home.mdb",
+  "ErrorDbPath": "C:\\Users\\omara\\OneDrive\\Desktop\\ErrorDB.accdb",
+  "Language": 1,
+  "ImportUrl": "http://localhost:8081/api/GL/ImportJournal",
+  "LoginUrl": "http://localhost:8081/api/Auth/login",
+  "Endpoint": "http://localhost:5000/import",
+  "LastUsedDatabase": "C:\\Users\\omara\\OneDrive\\Desktop\\home.mdb",
+  "RecentDatabases": [
+    "C:\\Users\\omara\\OneDrive\\Desktop\\home.mdb"
+  ]
+}

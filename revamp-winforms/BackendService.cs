@@ -1,0 +1,800 @@
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
+
+
+namespace EazyRentRevamp
+{
+    public class BackendService
+    {
+        //public bool HasWarnings => TotalSkip > 0;
+        private readonly DataAccess _dataAccess = new DataAccess();
+        private readonly MemoryStore _memoryStore = new MemoryStore();
+        private readonly RequestLogger _logger = new RequestLogger();
+        private MemoryModel _memory;
+        private ErrorDbWriter? _errorDbWriter;
+
+        private string _loginUrl = "http://localhost:8081/api/Auth/login";
+        private string _importUrl = "http://localhost:8081/api/GL/ImportJournal";
+        private string? _cachedToken;
+
+        private static readonly HttpClient _httpClient = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(8)
+        };
+
+        // Headers (match existing Java service defaults)
+        private const string _hdrAccept = "text/plain";
+        private const string _hdrYear = "2025";
+        private const string _hdrActivity = "1";
+        private const string _loginUserId = "1";
+        private const string _loginPassword = "1";
+
+        // SQL templates: choose based on UI mode selection
+        // sqlUnsent: records not yet sent (timestamp is NULL)
+        private string _sqlUnsent =
+            "SELECT [Room_no],[Descr1],[Rent_no],[Date],[Amount],[Type],[DebitAccount1],[DebitAccount2],[CreditAccount1],[CreditAccount2],[DrcostCenterCode],[Crcostcentercode],[Ser] " +
+            "FROM (" +
+            " SELECT [Room_no],[Descr1],[Rent_no],[Date],[Amount],[Type],[DebitAccount1],[DebitAccount2],[CreditAccount1],[CreditAccount2],[DrcostCenterCode],[Crcostcentercode],[Ser],[TR_TimeStamp] FROM [statement] " +
+            " UNION ALL " +
+            " SELECT [Room_no],[Descr1],[Rent_no],[Date],[Amount],[Type],[DebitAccount1],[DebitAccount2],[CreditAccount1],[CreditAccount2],[DrcostCenterCode],[Crcostcentercode],[Ser],[TR_TimeStamp] FROM [Gl_Journal] " +
+            ") AS U " +
+            "WHERE [Date] >= ? AND [Date] <= ? AND [TR_TimeStamp] IS NULL";
+        // sqlSent: records already sent (timestamp is NOT NULL)
+        private string _sqlSent =
+            "SELECT [Room_no],[Descr1],[Rent_no],[Date],[Amount],[Type],[DebitAccount1],[DebitAccount2],[CreditAccount1],[CreditAccount2],[DrcostCenterCode],[Crcostcentercode],[Ser] " +
+            "FROM (" +
+            " SELECT [Room_no],[Descr1],[Rent_no],[Date],[Amount],[Type],[DebitAccount1],[DebitAccount2],[CreditAccount1],[CreditAccount2],[DrcostCenterCode],[Crcostcentercode],[Ser],[TR_TimeStamp] FROM [statement] " +
+            " UNION ALL " +
+            " SELECT [Room_no],[Descr1],[Rent_no],[Date],[Amount],[Type],[DebitAccount1],[DebitAccount2],[CreditAccount1],[CreditAccount2],[DrcostCenterCode],[Crcostcentercode],[Ser],[TR_TimeStamp] FROM [Gl_Journal] " +
+            ") AS U " +
+            "WHERE [Date] >= ? AND [Date] <= ? AND [TR_TimeStamp] IS NOT NULL";
+        private string _sqlSendRange_statment = "SELECT * FROM [statement] WHERE [Date] >= ? AND [Date] <= ? AND [TR_TimeStamp] IS NULL";
+        private string _sqlSendRangeStatementAlt = "SELECT * FROM [statement] WHERE [Date] >= ? AND [Date] <= ? AND [TR_TimeStamp] IS NULL";
+
+        private string _sqlSendRange_GL = "SELECT * FROM [Gl_Journal] WHERE [Date] >= ? AND [Date] <= ? AND [TR_TimeStamp] IS NULL";
+        private string _sqlSendRangeGlAlt = "SELECT * FROM [Gl_Journal] WHERE [Date] >= ? AND [Date] <= ? AND [TR_TimeStamp] IS NULL";
+
+        private string _countUnsentStatement = "SELECT COUNT(*) FROM [statement] WHERE [Date] >= ? AND [Date] <= ? AND [TR_TimeStamp] IS NULL";
+        private string _countUnsentGl = "SELECT COUNT(*) FROM [Gl_Journal] WHERE [Date] >= ? AND [Date] <= ? AND [TR_TimeStamp] IS NULL";
+        private string _countSentStatement = "SELECT COUNT(*) FROM [statement] WHERE [Date] >= ? AND [Date] <= ? AND [TR_TimeStamp] IS NOT NULL";
+        private string _countSentGl = "SELECT COUNT(*) FROM [Gl_Journal] WHERE [Date] >= ? AND [Date] <= ? AND [TR_TimeStamp] IS NOT NULL";
+
+        // Access doesn't support TRUNC(); use a half-open range to ignore time: ts >= fromDate AND ts < (toDate + 1 day)
+        private string _errorsql = "SELECT [Room_no],[Descr1],[Rent_no],[Date_OF_DB],[Amount],[Type],[DebitAccount1],[DebitAccount2],[CreditAccount1],[CreditAccount2],[DrcostCenter],[CrcostCenter],[Ser],[ERORR],[failed_requests_timestamp] FROM [ErrorDBlog] WHERE [failed_requests_timestamp] >= ? AND [failed_requests_timestamp] < DateAdd('d', 1, ?) ORDER BY [failed_requests_timestamp] DESC";
+        private string _countErrorsSql = "SELECT COUNT(*) FROM [ErrorDBlog] WHERE [failed_requests_timestamp] >= ? AND [failed_requests_timestamp] < DateAdd('d', 1, ?)";
+        // Search helpers: ignore time by using half-open range [fromDate, toDate + 1 day)
+        private string _errorSearchSerial =
+            "SELECT [Room_no],[Descr1],[Rent_no],[Date_OF_DB],[Amount],[Type],[DebitAccount1],[DebitAccount2],[CreditAccount1],[CreditAccount2],[DrcostCenter],[CrcostCenter],[Ser],[ERORR],[failed_requests_timestamp] " +
+            "FROM [ErrorDBlog] WHERE [Ser] = ? AND [failed_requests_timestamp] >= ? AND [failed_requests_timestamp] < DateAdd('d', 1, ?) " +
+            "ORDER BY [failed_requests_timestamp] DESC";
+
+        private string _errorSearchRoomNumber =
+            "SELECT [Room_no],[Descr1],[Rent_no],[Date_OF_DB],[Amount],[Type],[DebitAccount1],[DebitAccount2],[CreditAccount1],[CreditAccount2],[DrcostCenter],[CrcostCenter],[Ser],[ERORR],[failed_requests_timestamp] " +
+            "FROM [ErrorDBlog] WHERE [Room_no] = ? AND [failed_requests_timestamp] >= ? AND [failed_requests_timestamp] < DateAdd('d', 1, ?) " +
+            "ORDER BY [failed_requests_timestamp] DESC";
+
+        private string _markSentStatementBySer = "UPDATE [statement] SET [TR_TimeStamp] = ? WHERE [Ser] = ?";
+        private string _markSentGlBySer = "UPDATE [Gl_Journal] SET [TR_TimeStamp] = ? WHERE [Ser] = ?";      
+        public BackendService()
+        {
+            _memory = _memoryStore.Load();
+
+            if (!string.IsNullOrWhiteSpace(_memory.ImportUrl))
+            {
+                _importUrl = _memory.ImportUrl;
+            }
+            else if (!string.IsNullOrWhiteSpace(_memory.Endpoint))
+            {
+                // Back-compat: older memory.json stored import URL in Endpoint
+                _importUrl = _memory.Endpoint;
+            }
+
+            if (!string.IsNullOrWhiteSpace(_memory.LoginUrl))
+            {
+                _loginUrl = _memory.LoginUrl;
+            }
+
+            if (!string.IsNullOrWhiteSpace(_memory.DatabasePath))
+            {
+                _dataAccess.SetConnectionPath(_memory.DatabasePath);
+                _errorDbWriter = new ErrorDbWriter(_dataAccess, _memory.DatabasePath, _memory.ErrorDbPath);
+            }
+        }
+
+        public string LoginUrl => _loginUrl;
+        public string ImportUrl => _importUrl;
+        public string DatabasePath => _memory.DatabasePath ?? string.Empty;
+        public string ErrorDbPath => _memory.ErrorDbPath ?? string.Empty;
+        public IReadOnlyList<string> RecentDatabases => _memory.RecentDatabases.AsReadOnly();
+        public AppLanguage Language => _memory.Language == 1 ? AppLanguage.English : AppLanguage.Arabic;
+
+        public void SetLanguage(AppLanguage language)
+        {
+            _memory.Language = language == AppLanguage.English ? 1 : 2;
+            _memoryStore.Save(_memory);
+        }
+
+        public List<Record> FetchRecords(DateTime from, DateTime to, string mode)
+        {
+            // select SQL based on mode
+            string q = (mode == "sent") ? _sqlSent : _sqlUnsent;
+            var rows = _dataAccess.Query(q, from, to);
+            var list = new List<Record>();
+            foreach (var r in rows)
+            {
+                list.Add(new Record
+                {
+                    RoomNo = r.GetStringOrEmpty("Room_no"),
+                    Descr1 = r.GetStringOrEmpty("Descr1"),
+                    RentNo = r.GetStringOrEmpty("Rent_no"),
+                    Date = r.GetStringOrEmpty("Date"),
+                    Amount = r.GetStringOrEmpty("Amount"),
+                    Type = r.GetStringOrEmpty("Type"),
+                    DebitAccount1 = r.GetStringOrEmpty("DebitAccount1"),
+                    DebitAccount2 = r.GetStringOrEmpty("DebitAccount2"),
+                    CreditAccount1 = r.GetStringOrEmpty("CreditAccount1"),
+                    CreditAccount2 = r.GetStringOrEmpty("CreditAccount2"),
+                    DrCostCenterCode = r.GetStringOrEmpty("DrcostCenterCode"),
+                    CrCostCenterCode = r.GetStringOrEmpty("Crcostcentercode"),
+                    Ser = r.GetStringOrEmpty("Ser")
+                });
+            }
+            return list;
+        }
+
+        public List<ErrorRecord> FetchErrorRecords(DateTime from, DateTime to)
+        {
+            if (string.IsNullOrWhiteSpace(_memory.ErrorDbPath)) return new List<ErrorRecord>();
+
+            var rows = _dataAccess.QueryOn(_memory.ErrorDbPath, includePassword: false, _errorsql, from, to);
+            var list = new List<ErrorRecord>();
+            foreach (var r in rows)
+            {
+                list.Add(new ErrorRecord
+                {
+                    RoomNo = r.GetStringOrEmpty("Room_no"),
+                    Descr1 = r.GetStringOrEmpty("Descr1"),
+                    RentNo = r.GetStringOrEmpty("Rent_no"),
+                    DateOfDb = r.GetStringOrEmpty("Date_OF_DB"),
+                    Amount = r.GetStringOrEmpty("Amount"),
+                    Type = r.GetStringOrEmpty("Type"),
+                    DebitAccount1 = r.GetStringOrEmpty("DebitAccount1"),
+                    DebitAccount2 = r.GetStringOrEmpty("DebitAccount2"),
+                    CreditAccount1 = r.GetStringOrEmpty("CreditAccount1"),
+                    CreditAccount2 = r.GetStringOrEmpty("CreditAccount2"),
+                    DrCostCenter = r.GetStringOrEmpty("DrcostCenter"),
+                    CrCostCenter = r.GetStringOrEmpty("CrcostCenter"),
+                    Ser = r.GetStringOrEmpty("Ser"),
+                    Error = r.GetStringOrEmpty("ERORR"),
+                    FailedRequestsTimestamp = r.GetStringOrEmpty("failed_requests_timestamp")
+                });
+            }
+            return list;
+        }
+
+        public int CountErrorRecords(DateTime from, DateTime to)
+        {
+            if (string.IsNullOrWhiteSpace(_memory.ErrorDbPath)) return 0;
+            return _dataAccess.CountOn(_memory.ErrorDbPath, includePassword: false, _countErrorsSql, from, to);
+        }
+
+        public List<ErrorRecord> SearchErrorRecords(DateTime from, DateTime to, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(_memory.ErrorDbPath)) return new List<ErrorRecord>();
+            if (string.IsNullOrWhiteSpace(searchText)) return new List<ErrorRecord>();
+
+            var term = searchText.Trim();
+
+            // Union in code: run both queries and de-duplicate.
+            var list = new List<ErrorRecord>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            void AddRows(List<Row> rows)
+            {
+                foreach (var r in rows)
+                {
+                    var rec = new ErrorRecord
+                    {
+                        RoomNo = r.GetStringOrEmpty("Room_no"),
+                        Descr1 = r.GetStringOrEmpty("Descr1"),
+                        RentNo = r.GetStringOrEmpty("Rent_no"),
+                        DateOfDb = r.GetStringOrEmpty("Date_OF_DB"),
+                        Amount = r.GetStringOrEmpty("Amount"),
+                        Type = r.GetStringOrEmpty("Type"),
+                        DebitAccount1 = r.GetStringOrEmpty("DebitAccount1"),
+                        DebitAccount2 = r.GetStringOrEmpty("DebitAccount2"),
+                        CreditAccount1 = r.GetStringOrEmpty("CreditAccount1"),
+                        CreditAccount2 = r.GetStringOrEmpty("CreditAccount2"),
+                        DrCostCenter = r.GetStringOrEmpty("DrcostCenter"),
+                        CrCostCenter = r.GetStringOrEmpty("CrcostCenter"),
+                        Ser = r.GetStringOrEmpty("Ser"),
+                        Error = r.GetStringOrEmpty("ERORR"),
+                        FailedRequestsTimestamp = r.GetStringOrEmpty("failed_requests_timestamp")
+                    };
+
+                    var key = $"{rec.Ser}|{rec.RoomNo}|{rec.RentNo}|{rec.FailedRequestsTimestamp}|{rec.Error}";
+                    if (seen.Add(key)) list.Add(rec);
+                }
+            }
+
+            AddRows(_dataAccess.QueryOn(_memory.ErrorDbPath, includePassword: false, _errorSearchSerial, term, from, to));
+            AddRows(_dataAccess.QueryOn(_memory.ErrorDbPath, includePassword: false, _errorSearchRoomNumber, term, from, to));
+
+            return list;
+        }
+
+        public int CountErrorRecordsSearch(DateTime from, DateTime to, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(_memory.ErrorDbPath)) return 0;
+            if (string.IsNullOrWhiteSpace(searchText)) return 0;
+            return SearchErrorRecords(from, to, searchText).Count;
+        }
+        
+   
+
+    public SendRangeResult SendRange(DateTime from, DateTime to)
+        => SendRange(from, to, progress: null);
+
+    public SendRangeResult SendRange(DateTime from, DateTime to, IProgress<int>? progress)
+    {
+        try { _errorDbWriter.EnsureReady(); }
+        catch (Exception ex)
+            { return new SendRangeResult { ErrorMessage = "Could not initialize error database: " + ex.Message }; }
+
+        if (_errorDbWriter == null)
+            return new SendRangeResult { ErrorMessage = "No error database configured." };
+
+        var result = new SendRangeResult();
+
+        IReadOnlyList<Row>? statementRows = null;
+        IReadOnlyList<Row>? glRows = null;
+        try { statementRows = QuerySendRows(_sqlSendRange_statment, _sqlSendRangeStatementAlt, from, to); } catch { }
+        try { glRows        = QuerySendRows(_sqlSendRange_GL, _sqlSendRangeGlAlt, from, to); } catch { }
+
+        var total = (statementRows?.Count ?? 0) + (glRows?.Count ?? 0);
+        var done = 0;
+
+        void ReportOne()
+        {
+            if (total <= 0) return;
+            done++;
+            var pct = (int)Math.Round(done * 100.0 / total, MidpointRounding.AwayFromZero);
+            if (pct < 0) pct = 0;
+            if (pct > 100) pct = 100;
+            progress?.Report(pct);
+        }
+
+        progress?.Report(total <= 0 ? 100 : 0);
+
+        SendRange_statement(statementRows, ref result, onItemDone: ReportOne);
+        SendRange_gl(glRows, ref result, onItemDone: ReportOne);
+        return result;
+    }
+
+    public void SendRange_statement(DateTime from, DateTime to, ref SendRangeResult result)
+    {
+        try
+        {
+            var rows = QuerySendRows(_sqlSendRange_statment, _sqlSendRangeStatementAlt, from, to);
+            SendRange_statement(rows, ref result, onItemDone: null);
+        }
+        catch (Exception ex) { result.ErrorMessage = "Statement error: " + ex.Message; }
+    }
+
+    public void SendRange_gl(DateTime from, DateTime to, ref SendRangeResult result)
+    {
+        try
+        {
+            var rows = QuerySendRows(_sqlSendRange_GL, _sqlSendRangeGlAlt, from, to);
+            SendRange_gl(rows, ref result, onItemDone: null);
+        }
+        catch (Exception ex) { result.ErrorMessage = (result.ErrorMessage ?? "") + " GL error: " + ex.Message; }
+    }
+
+    private IReadOnlyList<Row> QuerySendRows(string primarySql, string fallbackSql, DateTime from, DateTime to)
+    {
+        try
+        {
+            return _dataAccess.Query(primarySql, from, to);
+        }
+        catch
+        {
+            return _dataAccess.Query(fallbackSql, from, to);
+        }
+    }
+
+    private void SendRange_statement(IReadOnlyList<Row>? rows, ref SendRangeResult result, Action? onItemDone)
+    {
+        if (rows == null || rows.Count == 0) return;
+
+        var token = LoginExact();
+        foreach (var row in rows)
+        {
+            try
+            {
+                var journal = BuildJournalForApi(row);
+                if (journal == null) { result.SkipStatement++; continue; } // ← skip counted
+
+                var ser     = row.GetStringOrEmpty("Ser");
+
+
+                var options = new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+                };
+
+                var payload = JsonSerializer.Serialize(new[] { journal }, options);
+
+                _logger.LogRequest("POST", _importUrl, payload.Length > 500 ? payload.Substring(0, 500) + "..." : payload);
+
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                using var req = new HttpRequestMessage(HttpMethod.Post, _importUrl);
+                req.Headers.Accept.Clear();
+                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                req.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+                var resp     = _httpClient.SendAsync(req).GetAwaiter().GetResult();
+                var respBody = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult() ?? string.Empty;
+                stopwatch.Stop();
+
+                _logger.LogResponse((int)resp.StatusCode, respBody, stopwatch.ElapsedMilliseconds);
+
+                var parsed   = TryParseImportResponse(respBody);
+
+                if (IsImportSuccess(parsed))
+                {
+                    result.SuccessStatement++;
+                    _logger.LogImportSuccess(ser, "Statement processed successfully");
+                    SaveImportSuccess(row, parsed, payload, respBody);
+                    if (!string.IsNullOrWhiteSpace(ser))
+                        _dataAccess.Execute(_markSentStatementBySer, DateTime.Now, ser);
+                }
+                else
+                {
+                    result.FailStatement++;
+                    var errorMsg = ExtractImportError(parsed, payload, respBody);
+                    _logger.LogImportFailure(ser, errorMsg);
+                    SaveImportError(row, parsed, payload, respBody);
+                }
+            }
+            finally { onItemDone?.Invoke(); }
+        }
+    }
+
+    private void SendRange_gl(IReadOnlyList<Row>? rows, ref SendRangeResult result, Action? onItemDone)
+    {
+        if (rows == null || rows.Count == 0) return;
+
+        var token = LoginExact();
+        foreach (var row in rows)
+        {
+            try
+            {
+                var journal = BuildJournalForApi(row);
+                if (journal == null) { result.SkipGl++; continue; } // ← skip counted
+
+                var ser     = row.GetStringOrEmpty("Ser");
+                var options = new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+                };
+
+                var payload = JsonSerializer.Serialize(new[] { journal }, options);
+                _logger.LogRequest("POST", _importUrl, payload.Length > 500 ? payload.Substring(0, 500) + "..." : payload);
+
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                using var req = new HttpRequestMessage(HttpMethod.Post, _importUrl);
+                req.Headers.Accept.Clear();
+                req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                req.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+                var resp     = _httpClient.SendAsync(req).GetAwaiter().GetResult();
+                var respBody = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult() ?? string.Empty;
+                stopwatch.Stop();
+
+                _logger.LogResponse((int)resp.StatusCode, respBody, stopwatch.ElapsedMilliseconds);
+
+                var parsed   = TryParseImportResponse(respBody);
+
+                if (IsImportSuccess(parsed))
+                {
+                    result.SuccessGl++;
+                    _logger.LogImportSuccess(ser, "GL processed successfully");
+                    SaveImportSuccess(row, parsed, payload, respBody);
+                    if (!string.IsNullOrWhiteSpace(ser))
+                        _dataAccess.Execute(_markSentGlBySer, DateTime.Now, ser);
+                }
+                else
+                {
+                    result.FailGl++;
+                    var errorMsg = ExtractImportError(parsed, payload, respBody);
+                    _logger.LogImportFailure(ser, errorMsg);
+                    SaveImportError(row, parsed, payload, respBody);
+                }
+            }
+            finally { onItemDone?.Invoke(); }
+        }
+    }
+    public sealed class SendRangeResult
+    {
+        public int SuccessStatement { get; set; }
+        public int FailStatement    { get; set; }
+        public int SkipStatement    { get; set; }
+        public int SuccessGl        { get; set; }
+        public int FailGl           { get; set; }
+        public int SkipGl           { get; set; }
+        public string? ErrorMessage { get; set; }
+
+        public int TotalSuccess  => SuccessStatement + SuccessGl;
+        public int TotalFail     => FailStatement    + FailGl;
+        public int TotalSkip     => SkipStatement    + SkipGl;
+        public bool IsOk         => string.IsNullOrEmpty(ErrorMessage) && TotalFail == 0;
+        public bool HasWarnings  => TotalSkip > 0;  
+    }
+    
+        private static ImportJournalResponse? TryParseImportResponse(string responseBody)
+        {
+            if (string.IsNullOrWhiteSpace(responseBody)) return null;
+            try { return JsonSerializer.Deserialize<ImportJournalResponse>(responseBody); }
+            catch { return null; }
+        }
+
+        private static bool IsImportSuccess(ImportJournalResponse? parsed)
+        {
+            if (parsed == null) return false;
+            if (parsed.Code != 0) return false;
+            if (parsed.Content == null || parsed.Content.Count == 0) return false;
+            return parsed.Content[0].StatusCode == "200";
+        }
+
+        private void SaveImportError(Row sourceRow, ImportJournalResponse? parsed, string requestBody, string responseBody)
+        {
+            if (_errorDbWriter == null) {
+            MessageBox.Show("Critical Error: No error database configured. The request was sent!!");
+            return ;
+            }
+            try
+            {
+                var message = ExtractImportError(parsed, requestBody, responseBody);
+                _errorDbWriter.SaveError(sourceRow, message, requestBody, responseBody);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Error saving to DB:\n\n" +
+                    ex.ToString() +
+                    "\n\nResponse:\n" +
+                    responseBody);
+            }
+        }
+
+        private void SaveImportSuccess(Row sourceRow, ImportJournalResponse? parsed, string requestBody, string responseBody)
+        {
+            if (_errorDbWriter == null) return;
+            try
+            {
+                var message = ExtractImportSuccess(parsed, responseBody);
+                _errorDbWriter.SaveSuccess(sourceRow, message, requestBody, responseBody);
+            }
+            catch
+            {
+                // Success logging must not block marking the request as sent.
+            }
+        }
+
+        private static string ExtractImportError(ImportJournalResponse? parsed, string requestBody, string responseBody)
+        {
+            if (parsed == null)
+                return BuildParsingErrorMessage(requestBody, responseBody);
+
+            var msg = parsed.Message ?? string.Empty;
+            if (parsed.Content != null && parsed.Content.Count > 0)
+            {
+                var details = parsed.Content[0].Message ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(details))
+                {
+                    msg = string.IsNullOrWhiteSpace(msg) ? details : $"{msg} | {details}";
+                }
+            }
+
+            return msg;
+        }
+
+        private static string ExtractImportSuccess(ImportJournalResponse? parsed, string responseBody)
+        {
+            if (parsed == null)
+                return "Success response received, but parsing error occurred. Please refer to the logged request and response.";
+
+            var msg = parsed.Message ?? string.Empty;
+            if (parsed.Content != null && parsed.Content.Count > 0)
+            {
+                var details = parsed.Content[0].Message ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(details))
+                {
+                    msg = string.IsNullOrWhiteSpace(msg) ? details : $"{msg} | {details}";
+                }
+            }
+
+            return string.IsNullOrWhiteSpace(msg) ? responseBody : msg;
+        }
+
+        private static string BuildParsingErrorMessage(string requestBody, string responseBody)
+        {
+            return "Parsing error. The program could not parse the API response to determine the error. Please refer to the logged request and response.";
+        }
+
+        private sealed class ImportJournalResponse
+        {
+            [JsonPropertyName("code")]
+            public int Code { get; set; }
+
+            [JsonPropertyName("message")]
+            public string? Message { get; set; }
+
+            [JsonPropertyName("content")]
+            public List<ImportJournalContentItem>? Content { get; set; }
+        }
+
+        private sealed class ImportJournalContentItem
+        {
+            [JsonPropertyName("referenceId")]
+            public string? ReferenceId { get; set; }
+
+            [JsonPropertyName("message")]
+            public string? Message { get; set; }
+
+            [JsonPropertyName("errorNo")]
+            public string? ErrorNo { get; set; }
+
+            [JsonPropertyName("docNo")]
+            public string? DocNo { get; set; }
+
+            [JsonPropertyName("docSer")]
+            public string? DocSer { get; set; }
+
+            [JsonPropertyName("statusCode")]
+            public string? StatusCode { get; set; }
+        }
+
+
+        public void SetEndpoint(string url)
+        {
+            // Back-compat entry point; treat as import URL.
+            SetImportUrl(url);
+        }
+
+        public void SetLoginUrl(string url)
+        {
+            _loginUrl = url;
+            _memory.LoginUrl = url;
+            _memoryStore.Save(_memory);
+        }
+
+        public void SetImportUrl(string url)
+        {
+            _importUrl = url;
+            _memory.ImportUrl = url;
+            _memoryStore.Save(_memory);
+        }
+
+        public void SetErrorDbPath(string path)
+        {
+            _memory.ErrorDbPath = path ?? string.Empty;
+            _memoryStore.Save(_memory);
+            _errorDbWriter = new ErrorDbWriter(_dataAccess, _memory.DatabasePath, _memory.ErrorDbPath);
+        }
+
+        private string LoginExact()
+        {
+            if (!string.IsNullOrWhiteSpace(_cachedToken)) return _cachedToken!;
+
+            var body = JsonSerializer.Serialize(new { userId = _loginUserId, password = _loginPassword });
+            _logger.LogRequest("POST", _loginUrl, body);
+
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            using var req = new HttpRequestMessage(HttpMethod.Post, _loginUrl);
+            req.Headers.TryAddWithoutValidation("accept", _hdrAccept);
+            req.Headers.TryAddWithoutValidation("year", _hdrYear);
+            req.Headers.TryAddWithoutValidation("activity", _hdrActivity);
+            req.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+            var resp = _httpClient.SendAsync(req).GetAwaiter().GetResult();
+            var respBody = resp.Content.ReadAsStringAsync().GetAwaiter().GetResult() ?? string.Empty;
+            stopwatch.Stop();
+
+            _logger.LogResponse((int)resp.StatusCode, respBody, stopwatch.ElapsedMilliseconds);
+
+            var token = ExtractTokenLoose(respBody);
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                token = respBody.Trim().Trim('"');
+            }
+
+            _cachedToken = token;
+            return token;
+        }
+
+        private static string? ExtractTokenLoose(string body)
+        {
+            if (string.IsNullOrWhiteSpace(body)) return null;
+            var b = body.Trim();
+            if (b.StartsWith("\"", StringComparison.Ordinal) && b.EndsWith("\"", StringComparison.Ordinal) && b.Length > 2)
+            {
+                return b.Substring(1, b.Length - 2);
+            }
+
+            const string key = "\"token\"";
+            var i = b.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+            if (i >= 0)
+            {
+                var q1 = b.IndexOf('"', i + key.Length);
+                if (q1 >= 0)
+                {
+                    var q2 = b.IndexOf('"', q1 + 1);
+                    if (q2 > q1) return b.Substring(q1 + 1, q2 - q1 - 1);
+                }
+            }
+
+            // Best-effort: return a JWT-like token if present.
+            var parts = b.Split(new[] { ' ', '"', '{', '}', ':', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var part in parts)
+            {
+                if (part.Length > 20 && part.Contains('.', StringComparison.Ordinal)) return part;
+            }
+
+            return null;
+        }
+
+        private static Dictionary<string, object>? BuildJournalForApi(Row r)
+        {
+            if (r == null) return null;
+
+            string GetS(string key) => r.GetStringOrEmpty(key);
+            string GetS2(string key1, string key2)
+            {
+                var a = GetS(key1);
+                return !string.IsNullOrWhiteSpace(a) ? a : GetS(key2);
+            }
+            string GetAmountString(string key1, string key2)
+            {
+                var a = GetS(key1);
+                return !string.IsNullOrWhiteSpace(a) ? a : GetS(key2);
+            }
+
+            static double ToDouble(string s)
+            {
+                if (string.IsNullOrWhiteSpace(s)) return 0d;
+                return double.TryParse(s, out var v) ? v : 0d;
+            }
+
+            static string ToYmd(string s)
+            {
+                if (string.IsNullOrWhiteSpace(s)) return string.Empty;
+                var trimmed = s.Trim();
+                if (DateTime.TryParse(trimmed, out var date))
+                    return date.ToString("yyyy-MM-dd");
+                return trimmed;
+            }
+
+            static bool IsValid(string s) => !string.IsNullOrWhiteSpace(s) && s.Trim().Length > 1;
+
+            var debitAcct1 = GetS("DebitAccount1");
+            var creditAcct1 = GetS2("CreditAccount11", "CreditAccount1");
+            if (!IsValid(debitAcct1) || !IsValid(creditAcct1)) return null;
+
+            var date = ToYmd(GetS("Date"));
+            var amt = Math.Abs(ToDouble(GetS("Amount")));
+
+            var j = new Dictionary<string, object>
+            {
+                ["docSerExternal"] = GetS2("Ser", "ser"),
+                ["branchNo"] = 1,
+                ["docDate"] = date,
+                ["docNo"] = null!,
+                ["jvType"] = 1,
+                ["amountLocal"] = amt,
+                ["referenceNo"] = "0",
+                ["beneficiaryName"] = "",
+                ["receiver"] = "",
+                ["manualDocNo"] = "",
+                ["description"] = "",
+                ["addTerminalName"] = "1"
+            };
+
+            var details = new List<Dictionary<string, object>>();
+
+            var drCostCenter = GetS2("DrcostCenterCode", "DrcostCenter");
+            var crCostCenter = GetS2("CrcostCenterCode", "Crcostcentercode");
+
+            var lineDescr = "room#= " + GetS("Room_no") + " rent#= " + GetS("Rent_no") + " " + GetS("Descr1");
+
+            void AddDr(string acctKey, string amtKey, string dtlKey)
+            {
+                var acct = GetS(acctKey);
+                if (string.IsNullOrWhiteSpace(acct)) return;
+                var lineAmt = Math.Abs(ToDouble(GetAmountString(amtKey, amtKey.Replace("_", ""))));
+                details.Add(new Dictionary<string, object>
+                {
+                    ["docDueDate"] = date,
+                    ["accountCode"] = acct,
+                    ["accountCodeDtl"] = string.IsNullOrWhiteSpace(GetS(dtlKey)) ? null : GetS(dtlKey),
+                    ["accountCodeDtlSub"] = "",
+                    ["currencyCode"] = "SAR",
+                    ["exchangeRate"] = 0,
+                    ["drOrCr"] = 1,
+                    ["amountLocal"] =lineAmt,
+                    ["amountForeign"] = 0,
+                    ["costCenterCode"] = string.IsNullOrWhiteSpace(drCostCenter) ? null : drCostCenter,
+                    ["chequeNo"] = "0",
+                    ["referenceNo"] = "0",
+                    ["billNo"] = "",
+                    ["billSer"] = "",
+                    ["installmentNo"] = 0,
+                    ["description"] = lineDescr
+                });
+            }
+
+            void AddCr(string acctValue, string amtKey, string dtlKey)
+            {
+                if (string.IsNullOrWhiteSpace(acctValue)) return;
+                var lineAmt = Math.Abs(ToDouble(GetAmountString(amtKey, amtKey.Replace("_", ""))));
+                details.Add(new Dictionary<string, object>
+                {
+                    ["docDueDate"] = date,
+                    ["accountCode"] = acctValue,
+                    ["accountCodeDtl"] = string.IsNullOrWhiteSpace(GetS(dtlKey)) ? null : GetS(dtlKey),
+                    ["accountCodeDtlSub"] = "",
+                    ["currencyCode"] = "SAR",
+                    ["exchangeRate"] = 0,
+                    ["drOrCr"] = -1,
+                    ["amountLocal"] = lineAmt,
+                    ["amountForeign"] = 0,
+                    ["costCenterCode"] = string.IsNullOrWhiteSpace(crCostCenter) ? null : crCostCenter,
+                    ["chequeNo"] = "0",
+                    ["referenceNo"] = "0",
+                    ["billNo"] = "",
+                    ["billSer"] = "",
+                    ["installmentNo"] = 0,
+                    ["description"] = lineDescr
+                });
+            }
+
+            AddDr("DebitAccount1", "Debit_Amount1", "Dr_dtl_ac1");
+            AddDr("DebitAccount2", "Debit_Amount2", "Dr_dtl_ac2");
+            AddCr(creditAcct1, "Credit_Amount1", "Cr_dtl_ac1");
+            AddCr(GetS("CreditAccount2"), "Credit_Amount2", "Cr_dtl_ac2");
+
+            j["details"] = details;
+            return j;
+        }
+
+        public int CountRecords(DateTime from, DateTime to, string mode)
+        {
+            if (mode == "sent")
+            {
+                return _dataAccess.Count(_countSentStatement, from, to) + _dataAccess.Count(_countSentGl, from, to);
+            }
+
+            return _dataAccess.Count(_countUnsentStatement, from, to) + _dataAccess.Count(_countUnsentGl, from, to);
+        }
+
+        public void SetDbPath(string path)
+        {
+            _dataAccess.SetConnectionPath(path);
+            _memory.DatabasePath = path ?? string.Empty;
+            _memory.LastUsedDatabase = path;
+            _memory.PushRecentDatabase(path);
+            _memoryStore.Save(_memory);
+            _errorDbWriter = new ErrorDbWriter(_dataAccess, _memory.DatabasePath, _memory.ErrorDbPath);
+        }
+    }
+}

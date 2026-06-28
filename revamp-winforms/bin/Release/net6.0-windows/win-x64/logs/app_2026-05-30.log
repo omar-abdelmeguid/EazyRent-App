@@ -1,0 +1,52 @@
+﻿
+================================================================================
+[2026-05-30 20:15:53.465] REQUEST
+Method: POST
+Endpoint: http://localhost:8081/api/Auth/login
+Body: {"userId":"1","password":"1"}
+
+================================================================================
+[2026-05-30 20:19:52.372] REQUEST
+Method: POST
+Endpoint: http://localhost:8081/api/Auth/login
+Body: {"userId":"1","password":"1"}
+Status: 200
+Response: {"token":"HARDCODED_TEST_TOKEN_12345"}
+Response Time: 55ms
+================================================================================
+
+
+================================================================================
+[2026-05-30 20:19:52.434] REQUEST
+Method: POST
+Endpoint: http://localhost:8081/api/GL/ImportJournal
+Body: [{"docSerExternal":"2598493","branchNo":1,"docDate":"4/28/2026","docNo":null,"jvType":1,"amountLocal":78,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"4/28/2026","accountCode":"1111010003","accountCodeDtl":"","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":78,"amountForeign":0,"costCenterCode":"","chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0...
+Status: 200
+Response: {"code":2000,"message":"nok","content":[{"referenceId":"2550235","message":"لم ينجاح","errorNo":"0"}]}
+Response Time: 3ms
+================================================================================
+
+[2026-05-30 20:19:52.439] FAILURE | Serial: 2598493 | Error: nok | لم ينجاح
+
+================================================================================
+[2026-05-30 20:22:29.024] REQUEST
+Method: POST
+Endpoint: http://localhost:8081/api/Auth/login
+Body: {"userId":"1","password":"1"}
+Status: 200
+Response: {"token":"HARDCODED_TEST_TOKEN_12345"}
+Response Time: 48ms
+================================================================================
+
+
+================================================================================
+[2026-05-30 20:22:29.076] REQUEST
+Method: POST
+Endpoint: http://localhost:8081/api/GL/ImportJournal
+Body: [{"docSerExternal":"2598493","branchNo":1,"docDate":"4/28/2026","docNo":null,"jvType":1,"amountLocal":78,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"4/28/2026","accountCode":"1111010003","accountCodeDtl":"","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":78,"amountForeign":0,"costCenterCode":"","chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo":0...
+Status: 200
+Response: {"code":2000,"message":"nok","content":[{"referenceId":"2550235","message":"لم ينجاح","errorNo":"0"}]}
+Response Time: 3ms
+================================================================================
+
+[2026-05-30 20:22:29.082] FAILURE | Serial: 2598493 | Error: nok | لم ينجاح

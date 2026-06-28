@@ -1,0 +1,35 @@
+﻿
+================================================================================
+[2026-05-30 22:49:14.579] REQUEST
+Method: POST
+Endpoint: http://localhost:8081/api/Auth/login
+Body: {"userId":"1","password":"1"}
+Status: 200
+Response: {"token":"HARDCODED_TEST_TOKEN_12345"}
+Response Time: 93ms
+================================================================================
+
+
+================================================================================
+[2026-05-30 22:49:14.682] REQUEST
+Method: POST
+Endpoint: http://localhost:8081/api/GL/ImportJournal
+Body: [{"docSerExternal":"2598493","branchNo":1,"docDate":"2026-04-28","docNo":null,"jvType":1,"amountLocal":78,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"2026-04-28","accountCode":"1111010003","accountCodeDtl":"","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":78,"amountForeign":0,"costCenterCode":"","chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo"...
+Status: 200
+Response: {"code":2000,"message":"nok","content":[{"referenceId":"2550235","message":"لم ينجاح","errorNo":"0"}]}
+Response Time: 3ms
+================================================================================
+
+[2026-05-30 22:49:14.689] FAILURE | Serial: 2598493 | Error: nok | لم ينجاح
+
+================================================================================
+[2026-05-30 22:49:41.545] REQUEST
+Method: POST
+Endpoint: http://localhost:8081/api/GL/ImportJournal
+Body: [{"docSerExternal":"2598493","branchNo":1,"docDate":"2026-04-28","docNo":null,"jvType":1,"amountLocal":78,"referenceNo":"0","beneficiaryName":"","receiver":"","manualDocNo":"","description":"","addTerminalName":"1","details":[{"docDueDate":"2026-04-28","accountCode":"1111010003","accountCodeDtl":"","accountCodeDtlSub":"","currencyCode":"SAR","exchangeRate":0,"drOrCr":1,"amountLocal":78,"amountForeign":0,"costCenterCode":"","chequeNo":"0","referenceNo":"0","billNo":"","billSer":"","installmentNo"...
+Status: 200
+Response: {"code":0,"message":"Success","content":[{"referenceId":"2598510","message":"The operation accomplished successfully.","errorNo":"0","docNo":"17472","docSer":"2025000001000010010000117472","statusCode":"200"}]}
+Response Time: 3ms
+================================================================================
+
+[2026-05-30 22:49:41.551] SUCCESS | Serial: 2598493 | Status: Statement processed successfully

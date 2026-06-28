@@ -1,0 +1,7 @@
+C:\Users\omara\OneDrive\Desktop\EazyRent-App-Easy-Rent-REVAMP\EazyRent-App-Easy-Rent-REVAMP\revamp-winforms\bin\Release\net6.0-windows\win-x64\EazyRentRevamp.exe
+C:\Users\omara\OneDrive\Desktop\EazyRent-App-Easy-Rent-REVAMP\EazyRent-App-Easy-Rent-REVAMP\revamp-winforms\bin\Release\net6.0-windows\win-x64\memory.json
+C:\Users\omara\OneDrive\Desktop\EazyRent-App-Easy-Rent-REVAMP\EazyRent-App-Easy-Rent-REVAMP\revamp-winforms\bin\Release\net6.0-windows\win-x64\EazyRentRevamp.dll
+C:\Users\omara\OneDrive\Desktop\EazyRent-App-Easy-Rent-REVAMP\EazyRent-App-Easy-Rent-REVAMP\revamp-winforms\bin\Release\net6.0-windows\win-x64\EazyRentRevamp.deps.json
+C:\Users\omara\OneDrive\Desktop\EazyRent-App-Easy-Rent-REVAMP\EazyRent-App-Easy-Rent-REVAMP\revamp-winforms\bin\Release\net6.0-windows\win-x64\EazyRentRevamp.runtimeconfig.json
+C:\Users\omara\OneDrive\Desktop\EazyRent-App-Easy-Rent-REVAMP\EazyRent-App-Easy-Rent-REVAMP\revamp-winforms\bin\Release\net6.0-windows\win-x64\EazyRentRevamp.pdb
+C:\Users\omara\OneDrive\Desktop\EazyRent-App-Easy-Rent-REVAMP\EazyRent-App-Easy-Rent-REVAMP\revamp-winforms\bin\Release\net6.0-windows\win-x64\System.Data.Odbc.dll

@@ -1,0 +1,14 @@
+{
+  "DatabasePath": "C:\\Users\\omara\\OneDrive\\Desktop\\Hotel\\HOME_FURAT_562026\\HOME_FURAT_562026.mdb",
+  "ErrorDbPath": "C:\\Users\\omara\\OneDrive\\Desktop\\EazyRent-App-Easy-Rent-REVAMP\\EazyRent-App-Easy-Rent-REVAMP\\error_db.accdb",
+  "Language": 1,
+  "ImportUrl": "http://localhost:8081/api/GL/ImportJournal",
+  "LoginUrl": "http://localhost:8081/api/Auth/login",
+  "Endpoint": "http://localhost:5000/import",
+  "LastUsedDatabase": "C:\\Users\\omara\\OneDrive\\Desktop\\Hotel\\HOME_FURAT_562026\\HOME_FURAT_562026.mdb",
+  "RecentDatabases": [
+    "C:\\Users\\omara\\OneDrive\\Desktop\\Hotel\\HOME_FURAT_562026\\HOME_FURAT_562026.mdb",
+    "C:\\Users\\omara\\OneDrive\\Desktop\\home.mdb",
+    "C:\\Users\\omara\\OneDrive\\Desktop\\home_omar\\home_omar.mdb"
+  ]
+}
